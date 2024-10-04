@@ -25,10 +25,12 @@ def main():
     Iz = Iy = pi*(D**4 - (D - e)**4)/64 # [m^4]
     Jx= 2*Iy # [m^4]
 
+    # Nodes on which supporters are sitting
     nodes_lumped = [4, 5, 21, 22, 23, 24,
                     25, 26, 10, 11, 27, 28, 
                     29, 30, 31, 32, 14, 15]
     
+    # Nodes attached on the ground
     clamped_nodes = [0, 1, 6, 7, 12, 13]
     
     # Physical values
@@ -46,34 +48,51 @@ def main():
                  "Iz":Iz, "Iy":Iy, "Jx":Jx,
                  "nodes_lumped":nodes_lumped}
 
-    #---------------#
-    #   Assembly    #
-    #---------------#
+    #----------------------#
+    #   Assembly process   #
+    #----------------------#
 
     nodes_list = createNodes(geom_data, phys_data)
-    elems_list = createElements(nodes_list, geom_data, phys_data)
-    printData(nodes_list, elems_list)
+    elems_list = createElements(nodes_list, nodes_lumped, geom_data, phys_data)
+    printData(nodes_list, elems_list, phys_data, geom_data)
+
     
     solver = Solver()
-    K, M = solver.assembly(elems_list, nodes_list, clamped_nodes)
 
-    #---------------#
-    #  Mode shapes  #
-    #---------------#
+    solver.assembly(elems_list, nodes_list, clamped_nodes)
+    solver.addLumpedMass(nodes_list, nodes_lumped)
+    solver.applyClampedNodes(nodes_list, clamped_nodes)
 
-    eigen_values, eigen_vectors = solver.solve(K, M)
-    eigen_values = np.sqrt(eigen_values)/(2*pi)
-    eigen_vectors = np.squeeze(eigen_vectors, axis=-1) # shape (162, 162, 1) -> (162, 162)
+    K, M = solver.extractMatrices()
 
-    #---------------#
-    #    Display    #
-    #---------------#
+
+    #-----------------------#
+    #  Compute mode shapes  #
+    #-----------------------#
+
+    eigen_values, eigen_vectors = solver.solve()
+
+    # Extract 6 first frequencies/mode shape
+    eig_vals = eigen_values[:6]
+    eig_vects = eigen_vectors[:6]
+    print(f"eigen values : {eig_vals} [Hz] \n")
+
+
+    #---------------------------#
+    #    Display deformations   #
+    #---------------------------#
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     display(fig, ax, activation, nodes_list, elems_list)
-    plotModes(fig, ax, nodes_list, eigen_vectors[0], elems_list, 4.5, clamped_nodes)
+    #plotModes(fig, ax, nodes_list, eigen_vectors[0], elems_list, 4.5, clamped_nodes)
     plt.show()
+
+    # TEMPORARY REF VALUES !!!!!
+    mu = np.mean(eig_vals)
+    std = np.std(eig_vals)
+    temp_eig_refs = np.random.normal(loc=mu, scale=std, size=6)
+    #convergence(eig_vals, temp_eig_refs)
 
 
 

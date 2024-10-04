@@ -1,8 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from mpl_toolkits.mplot3d import Axes3D
+
 
 def display(fig, ax, activation, nodes, elems):
+
 
     """
     if activation["print"]:
@@ -11,39 +15,47 @@ def display(fig, ax, activation, nodes, elems):
         print(f"Total number of DOF's: {np.shape(DOF)[0]*2}")
         print(f"Total number of beams: {np.shape(elems)[0]}")
     """
-
     if activation["plot"]:
+        # Nodes display
+        x_node = [node.pos[0] for node in nodes]
+        y_node = [node.pos[1] for node in nodes]
+        z_node = [node.pos[2] for node in nodes]
 
-        # nodes display
-        x_node = [xyz.pos[0] for xyz in nodes]
-        y_node = [xyz.pos[1] for xyz in nodes]
-        z_node = [xyz.pos[2] for xyz in nodes]
+        # Scatter plot for nodes
+        ax.scatter(x_node, y_node, z_node, c="blue", s=20, depthshade=True)
 
-        ax.scatter(x_node, y_node, z_node)
+        # Annotate nodes with their index
         for i, (x_val, y_val, z_val) in enumerate(zip(x_node, y_node, z_node)):
-            ax.text(x_val, y_val, z_val, str(i), fontsize=9, ha='center')
+            ax.text(x_val, y_val, z_val, f'{i}', fontsize=9, ha='center', color='black')
 
-        
-        # Beams display
-        for i in range(np.shape(elems)[0]):
-
-            idx_in = nodes[elems[i].nodes[0]].idx # elems[i].nodes[0] = 14
-            idx_out = nodes[elems[i].nodes[1]].idx
+        # Beams (elements) display
+        for elem in elems:
+            idx_in = nodes[elem.nodes[0]].idx
+            idx_out = nodes[elem.nodes[1]].idx
 
             x = [nodes[idx_in].pos[0], nodes[idx_out].pos[0]]
             y = [nodes[idx_in].pos[1], nodes[idx_out].pos[1]]
             z = [nodes[idx_in].pos[2], nodes[idx_out].pos[2]]
 
-            ax.plot(x, y, z, color="blue")
-        
-        ax.set_zlim(0, 6)
-        ax.set_ylim(0, 6)
-        ax.set_xlabel("x-axis")
-        ax.set_ylabel("y-axis")
-        ax.set_zlabel("z-axis")
+            ax.plot(x, y, z, color="blue", linewidth=1.5, alpha=0.5)
+
+        # Set plot labels and limits
+        ax.set_xlabel("X-axis", fontsize=12)
+        ax.set_ylabel("Y-axis", fontsize=12)
+        ax.set_zlabel("Z-axis", fontsize=12)
+
+        # Automatically adjust the limits based on the node coordinates
+        ax.set_xlim([min(x_node) - 1, max(x_node) + 1])
+        ax.set_ylim([min(y_node) - 1, max(y_node) + 1])
+        ax.set_zlim([min(z_node) - 1, max(z_node) + 1])
+
+        # Add grid and title
+        ax.grid(True)
 
 
-def printData(nodes_list, elems_list):
+
+
+def printData(nodes_list, elems_list, phys_data, geom_data):
 
     print("#----------------------#")
     print("#       FEM data       #")
@@ -53,13 +65,11 @@ def printData(nodes_list, elems_list):
     print(f"Number of (unclamped) DOF's : {6*len(nodes_list) - 36}")
     print(f"Number of elements : {len(elems_list)} \n")
 
-    elem_0 = elems_list[0]
-
-    print(f"A : {elem_0.A} [m^2]")
-    print(f"Iz : {elem_0.Iz} [m^4]")
-    print(f"Iy : {elem_0.Iy} [m^4]")
-    print(f"Jx : {elem_0.Jx} [m^4]")
-    print(f"M_lumped : {elem_0.M_lumped} [kg]")
+    print(f"A : {round(geom_data["A"],6)} [m^2]")
+    print(f"Iz : {round(geom_data["Iz"],6)} [m^4]")
+    print(f"Iy : {round(geom_data["Iy"],6)} [m^4]")
+    print(f"Jx : {round(geom_data["Jx"],6)} [m^4]")
+    print(f"M_lumped : {round(phys_data["M_lumped"],6)} [kg]")
     print("\n")
 
 
@@ -74,12 +84,15 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, coef, clamped_node
     new_idx = [6*i + j for i in unclamped_nodes_list for j in range(3)]
     new_idx_i = np.arange(0, len(new_idx)+3, 3)
 
+    print(f"new_idx {new_idx}")
+    print("\n")
+    print(f"new_idx_i {new_idx_i}")
+
     nodes = nodes_list.copy()
 
     for i in unclamped_nodes_list:
         for j in new_idx_i:
             nodes[i].pos[:] += coef*displacements[j:j+3]
-
 
     # nodes display
     x_node = [xyz.pos[0] for xyz in nodes]
@@ -101,6 +114,11 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, coef, clamped_node
         z = [nodes[idx_in].pos[2], nodes[idx_out].pos[2]]
 
         ax.plot(x, y, z, color="red", linestyle = "--")
+
+
+
+    
+
   
     
 

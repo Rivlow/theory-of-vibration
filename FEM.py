@@ -1,12 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
+pi = np.pi
 
 
 class Solver:
 
     def __init__(self):
-            self.ne = 0
+        self.M = None
+        self.K = None
+
 
     def assembly(self, elems_list, nodes_list, clamped_nodes):
          
@@ -16,21 +19,41 @@ class Solver:
         for i in range(len(elems_list)):
              
             elem = elems_list[i]
-   
-            ddls_down = elem.locel[0]
-            ddls_up = elem.locel[1]
+            DOFs_n1 = elem.locel[0]
+            DOFs_n2 = elem.locel[1]
 
             for k in range(6):
                 for h in range(6):
-                    M[ddls_down[k] - 1, ddls_down[h] - 1] += elem.M_eS[k, h]
-                    M[ddls_up[k] - 1, ddls_up[h] - 1] += elem.M_eS[6 + k, 6 + h]
-                    M[ddls_down[k] - 1, ddls_up[h] - 1] += elem.M_eS[k, 6 + h]
-                    M[ddls_up[k] - 1, ddls_down[h] - 1] += elem.M_eS[6 + k, h]
+
+                    M[DOFs_n1[k], DOFs_n1[h]] += elem.M_eS[k, h]
+                    M[DOFs_n1[k], DOFs_n2[h]] += elem.M_eS[k, 6 + h]
+                    M[DOFs_n2[k], DOFs_n1[h]] += elem.M_eS[6 + k, h]
+                    M[DOFs_n2[k], DOFs_n2[h]] += elem.M_eS[6 + k, 6 + h]
                     
-                    K[ddls_down[k] - 1, ddls_down[h] - 1] += elem.K_eS[k, h]
-                    K[ddls_up[k] - 1, ddls_up[h] - 1] += elem.K_eS[6 + k, 6 + h]
-                    K[ddls_down[k] - 1, ddls_up[h] - 1] += elem.K_eS[k, 6 + h]
-                    K[ddls_up[k] - 1, ddls_down[h] - 1] += elem.K_eS[6 + k, h]
+                    K[DOFs_n1[k], DOFs_n1[h]] += elem.K_eS[k, h]
+                    K[DOFs_n1[k], DOFs_n2[h]] += elem.K_eS[k, 6 + h]
+                    K[DOFs_n2[k], DOFs_n1[h]] += elem.K_eS[6 + k, h]
+                    K[DOFs_n2[k], DOFs_n2[h]] += elem.K_eS[6 + k, 6 + h]
+
+        # Check symmetry
+        if not np.allclose(M.T, M, atol = 1e-2):
+            raise ValueError("M matrix not symmetric")
+        
+        if not np.allclose(K.T, K, atol = 1e-2):
+            raise ValueError("K matrix not symmetric")
+
+        self.K = K
+        self.M = M
+
+    
+    def addLumpedMass(self, nodes_list, nodes_lumped):
+
+        for node in nodes_list:
+            if node.idx in nodes_lumped:
+                self.M[node.DOF[:3], node.DOF[:3]] += node.M_lumped
+
+
+    def applyClampedNodes(self, nodes_list, clamped_nodes):
 
         # Apply clamped nodes condition on K, M
         clamped_dofs = []
@@ -38,29 +61,26 @@ class Solver:
         for node in clamped_nodes:
             clamped_dofs.extend(nodes_list[node].DOF)
 
-        M = np.delete(M, clamped_dofs, axis=0)  
-        M = np.delete(M, clamped_dofs, axis=1)  
-        K = np.delete(K, clamped_dofs, axis=0)  
-        K = np.delete(K, clamped_dofs, axis=1)  
+        self.M = np.delete(self.M, clamped_dofs, axis=0)  
+        self.M = np.delete(self.M, clamped_dofs, axis=1)  
+        self.K = np.delete(self.K, clamped_dofs, axis=0)  
+        self.K = np.delete(self.K, clamped_dofs, axis=1)  
 
-        return K, M
-            
+    
+    def extractMatrices(self):
 
-    def solve(self, K, M):
+        return self.K, self.M
+
+  
+    def solve(self):
 
         # Solve system
-        eigen_values, eigen_vectors = sp.linalg.eig(K, M) 
+        eigen_values, eigen_vectors = sp.linalg.eig(self.K, self.M) 
 
-        # Sort (increasing value)
-        eigen_vectors = np.matrix(eigen_vectors)
-        eigen_values=eigen_values.real
-        order = np.argsort(eigen_values) 
-        eigen_values.sort()
-
-        sorted_eigen_vectors = []
-        eigen_vectors=eigen_vectors.real
-        for j in order:
-            sorted_eigen_vectors.append(eigen_vectors[:,j]) 
+        # Sorting (by increasing values)
+        eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2*pi)
+        order = np.argsort(eigen_values)
+        sorted_eigen_vectors = np.array(eigen_vectors.real)[:, order].squeeze() # sort + shape (162, 162, 1) -> (162, 162)
 
         return eigen_values, sorted_eigen_vectors
 
@@ -78,8 +98,6 @@ class Node:
 class Element:
     
     def __init(self):
-        self.nodes = None
-        self.locel = None
         self.rho = 0
         self.A = 0
         self.l = 0
@@ -90,7 +108,8 @@ class Element:
         self.G = 0
         self.Jx = 0
         self.r = 0
-        self.M_lumped = 0
+        self.nodes = None
+        self.locel = None
         self.T = None
         self.K_el = None
         self.K_eS = None
@@ -123,9 +142,7 @@ class Element:
         R = np.block([[np.dot(eX,ex),np.dot(eY,ex),np.dot(eZ,ex)],
                       [np.dot(eX,ey),np.dot(eY,ey),np.dot(eZ,ey)],
                       [np.dot(eX,ez),np.dot(eY,ez),np.dot(eZ,ez)]])
-        
-        
-                    
+           
         O = np.zeros((3,3)) # 3 ddls per node
         self.T = np.block([[R, O, O, O],
                            [O, R, O, O],
@@ -134,51 +151,62 @@ class Element:
 
     def getK(self):
 
-        K_el = np.array([[self.E*self.A/self.l,0,0,0,0,0,0,0,0,0,0,0],
-                         [0,12*self.E*self.Iz/(self.l**3),0,0,0,0,0,0,0,0,0,0],
-                         [0,0,12*self.E*self.Iy/(self.l**3),0,0,0,0,0,0,0,0,0],
-                         [0,0,0,self.G*self.Jx/self.l,0,0,0,0,0,0,0,0],
-                         [0,0,-6*self.E*self.Iy/(self.l**2),0,4*self.E*self.Iy/self.l,0,0,0,0,0,0,0],
-                         [0,6*self.E*self.Iz/(self.l**2),0,0,0,4*self.E*self.Iz/self.l,0,0,0,0,0,0],
-                         [-self.E*self.A/self.l,0,0,0,0,0,self.E*self.A/self.l,0,0,0,0,0],
-                         [0,-12*self.E*self.Iz/(self.l**3),0,0,0,-6*self.E*self.Iz/(self.l**2),0,12*self.E*self.Iz/(self.l**3),0,0,0,0],
-                         [0,0,-12*self.E*self.Iy/(self.l**3),0,6*self.E*self.Iy/(self.l**2),0,0,0,12*self.E*self.Iy/(self.l**3),0,0,0],
-                         [0,0,0,-self.G*self.Jx/self.l,0,0,0,0,0,self.G*self.Jx/self.l,0,0],
-                         [0,0,-6*self.E*self.Iy/(self.l**2),0,2*self.E*self.Iy/self.l,0,0,0,6*self.E*self.Iy/(self.l**2),0,4*self.E*self.Iy/self.l,0],
-                         [0,6*self.E*self.Iz/(self.l**2),0,0,0,2*self.E*self.Iy/self.l,0,-6*self.E*self.Iz/(self.l**2),0,0,0,4*self.E*self.Iz/self.l]])
+        E, G = self.E, self.G
+        A = self.A
+        l = self.l
+        Iz, Iy = self.Iz, self.Iy
+        Jx = self.Jx
+
+        K_el = np.array([[E*A/l, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                         [0, 12*E*Iz/(l**3), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                         [0, 0, 12*E*Iy/(l**3), 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, G*Jx/l, 0, 0, 0, 0, 0, 0, 0, 0],
+                         [0, 0, -6*E*Iy/(l**2), 0, 4*E*Iy/l, 0, 0, 0, 0, 0, 0, 0],
+                         [0, 6*E*Iz/(l**2), 0, 0, 0, 4*E*Iz/l, 0, 0, 0, 0, 0, 0],
+                         [-E*A/l, 0, 0, 0, 0, 0, E*A/l, 0, 0, 0, 0, 0],
+                         [0, -12*E*Iz/(l**3), 0, 0, 0, -6*E*Iz/(l**2), 0, 12*E*Iz/(l**3), 0, 0, 0, 0],
+                         [0, 0, -12*E*Iy/(l**3), 0, 6*E*Iy/(l**2), 0, 0, 0, 12*E*Iy/(l**3), 0, 0, 0],
+                         [0 ,0 ,0, -G*Jx/l, 0, 0, 0, 0, 0, G*Jx/l, 0, 0],
+                         [0, 0, -6*E*Iy/(l**2), 0, 2*E*Iy/l, 0, 0, 0, 6*E*Iy/(l**2), 0, 4*E*Iy/l, 0],
+                         [0, 6*E*Iz/(l**2), 0, 0, 0, 2*E*Iz/l, 0, -6*E*Iz/(l**2), 0, 0, 0, 4*E*Iz/l]])
 
         self.K_el = np.tril(K_el) + np.tril(K_el, -1).T 
         self.K_eS = self.T.T @ self.K_el @ self.T
+        
+        if not np.allclose(self.K_el.T, self.K_el, atol = 1e-2):
+            raise ValueError("K_el matrix not symmetric")
+        
+        if not np.allclose(self.K_eS.T, self.K_eS, atol = 1e-2):
+            raise ValueError("K_eS matrix not symmetric")
+        
 
     def getM(self, lumped_nodes):
 
         coef = self.rho*self.A*self.l
-        n1, n2 = self.nodes[0], self.nodes[1]
-        M_lumped_n1, M_lumped_n2 = 0, 0
+        l, r = self.l, self.r
 
-        if n1 in lumped_nodes:
-            M_lumped_n1 = self.M_lumped
-            M_lumped_n1 /= coef
-
-        if n2 in lumped_nodes:
-            M_lumped_n2 = self.M_lumped
-            M_lumped_n2 /= coef
-
-        M_el = coef*np.array([[1/3 + M_lumped_n1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 13/35 + M_lumped_n1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 13/35 + M_lumped_n1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, self.r**2/3, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, -11*self.l/210, 0, self.l**2/105, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 11*self.l/210, 0, 0, 0, self.l**2/105, 0, 0, 0, 0, 0, 0],
-                              [1/6 ,0 ,0 ,0 , 0, 0, 1/3 + M_lumped_n2, 0, 0, 0, 0 ,0],
-                              [0, 9/70, 0, 0, 0, 13*self.l/420, 0, 13/35 + M_lumped_n2, 0, 0, 0, 0],
-                              [0, 0, 9/70, 0, -13*self.l/420, 0, 0, 0, 13/35 + M_lumped_n2, 0, 0, 0],
-                              [0, 0, 0, self.r**2/6, 0, 0, 0, 0, 0, self.r**2/3, 0, 0],
-                              [0 ,0 , 13*self.l/420, 0, -self.l**2/140, 0, 0, 0, 11*self.l/210, 0, self.l**2/105, 0],
-                              [0 , -13*self.l/420, 0, 0, 0, -self.l**2/140, 0, -11*self.l/210, 0, 0, 0, self.l**2/105]])
+        M_el = coef*np.array([[1/3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 13/35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 13/35, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, r**2/3, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, -11*l/210, 0, l**2/105, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 11*l/210, 0, 0, 0, l**2/105, 0, 0, 0, 0, 0, 0],
+                              [1/6 ,0 ,0 ,0 , 0, 0, 1/3, 0, 0, 0, 0 ,0],
+                              [0, 9/70, 0, 0, 0, 13*l/420, 0, 13/35, 0, 0, 0, 0],
+                              [0, 0, 9/70, 0, -13*l/420, 0, 0, 0, 13/35, 0, 0, 0],
+                              [0, 0, 0, r**2/6, 0, 0, 0, 0, 0, r**2/3, 0, 0],
+                              [0 ,0 , 13*l/420, 0, -l**2/140, 0, 0, 0, 11*l/210, 0, l**2/105, 0],
+                              [0 , -13*l/420, 0, 0, 0, -l**2/140, 0, -11*l/210, 0, 0, 0, l**2/105]])
         
         self.M_el = np.tril(M_el) + np.tril(M_el, -1).T
         self.M_eS = self.T.T @ self.M_el @ self.T
+
+        
+        if not np.allclose(self.M_el.T, self.M_el, atol = 1e-2):
+            raise ValueError("M_el matrix not symmetric")
+        
+        if not np.allclose(self.M_eS.T, self.M_eS, atol = 1e-2):
+            raise ValueError("M_eS matrix not symmetric")
 
 
 def createNodes(geom_data, phys_data):
@@ -214,7 +242,7 @@ def createNodes(geom_data, phys_data):
     #================#
 
     nodes = []
-    incr = 1
+    incr = 0
     idx = 0
     nodes_lumped, M_lumped = geom_data["nodes_lumped"], phys_data["M_lumped"]
 
@@ -263,7 +291,7 @@ def createNodes(geom_data, phys_data):
 
     return nodes
 
-def createElements(nodes_list, geom_data, phys_data):
+def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
 
     # oh no please...
     nodes_pairs = [[0, 16], [0, 2], [1, 16], [1, 3], [2, 16], [3, 16],
@@ -276,6 +304,7 @@ def createElements(nodes_list, geom_data, phys_data):
                    [13, 20], [14, 20], [15, 20], [12, 14], [13, 15], [14, 15]]
     
     elems = []
+    count = 0
 
     for pair in nodes_pairs:
 
@@ -300,12 +329,10 @@ def createElements(nodes_list, geom_data, phys_data):
         elem.r = np.sqrt(Jx/A)
         elem.G = G
         elem.rho = rho
-        elem.M_lumped = M_lumped
-
+       
         elem.getT(nodes_list)
         elem.getK()
         elem.getM(nodes_lumped)
-    
         elems.append(elem)
 
     return elems
