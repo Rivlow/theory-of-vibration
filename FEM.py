@@ -10,15 +10,13 @@ class Solver:
         self.M = None
         self.K = None
 
-
     def assembly(self, elems_list, nodes_list, clamped_nodes):
          
         M = np.zeros((6*len(nodes_list), 6*len(nodes_list)))
         K = np.zeros((6*len(nodes_list), 6*len(nodes_list)))
 
-        for i in range(len(elems_list)):
+        for elem in elems_list:
              
-            elem = elems_list[i]
             DOFs_n1 = elem.locel[0]
             DOFs_n2 = elem.locel[1]
 
@@ -26,14 +24,14 @@ class Solver:
                 for h in range(6):
 
                     M[DOFs_n1[k], DOFs_n1[h]] += elem.M_eS[k, h]
-                    M[DOFs_n1[k], DOFs_n2[h]] += elem.M_eS[k, 6 + h]
-                    M[DOFs_n2[k], DOFs_n1[h]] += elem.M_eS[6 + k, h]
-                    M[DOFs_n2[k], DOFs_n2[h]] += elem.M_eS[6 + k, 6 + h]
+                    M[DOFs_n1[k], DOFs_n2[h]] += elem.M_eS[k, h+6]
+                    M[DOFs_n2[k], DOFs_n1[h]] += elem.M_eS[k+6, h]
+                    M[DOFs_n2[k], DOFs_n2[h]] += elem.M_eS[k+6, h+6]
                     
                     K[DOFs_n1[k], DOFs_n1[h]] += elem.K_eS[k, h]
-                    K[DOFs_n1[k], DOFs_n2[h]] += elem.K_eS[k, 6 + h]
-                    K[DOFs_n2[k], DOFs_n1[h]] += elem.K_eS[6 + k, h]
-                    K[DOFs_n2[k], DOFs_n2[h]] += elem.K_eS[6 + k, 6 + h]
+                    K[DOFs_n1[k], DOFs_n2[h]] += elem.K_eS[k, h+6]
+                    K[DOFs_n2[k], DOFs_n1[h]] += elem.K_eS[k+6, h]
+                    K[DOFs_n2[k], DOFs_n2[h]] += elem.K_eS[k+6, h+6]
 
         # Check symmetry
         if not np.allclose(M.T, M, atol = 1e-2):
@@ -53,13 +51,13 @@ class Solver:
                 self.M[node.DOF[:3], node.DOF[:3]] += node.M_lumped
 
 
-    def applyClampedNodes(self, nodes_list, clamped_nodes):
+    def removeClampedNodes(self, nodes_list, nodes_clamped):
 
         # Apply clamped nodes condition on K, M
         clamped_dofs = []
 
-        for node in clamped_nodes:
-            clamped_dofs.extend(nodes_list[node].DOF)
+        for node in nodes_clamped:
+            clamped_dofs.extend([dof for dof in nodes_list[node].DOF])
 
         self.M = np.delete(self.M, clamped_dofs, axis=0)  
         self.M = np.delete(self.M, clamped_dofs, axis=1)  
@@ -123,31 +121,35 @@ class Element:
             pos_1.append(nodeList[self.nodes[0]].pos[i])
             pos_2.append(nodeList[self.nodes[1]].pos[i])
         
-        pos_3 = [2. + pos_2[0], 3.487 + pos_2[1], -4.562 + pos_2[2]] # third not-aligned point
+        # third point
+        pos_3 = [2. + pos_2[0], 3.487 + pos_2[1], -4.562 + pos_2[2]] 
+
+        # Check if third point is not aligned
+        if collinearPoints(pos_1, pos_2, pos_3):
+            pos_3 = adjustPosition(pos_1, pos_2, pos_3, epsilon=0.01)
+
         d_3, d_2 = [], []
         for i in range(3):
             d_2.append(pos_2[i] - pos_1[i])
             d_3.append(pos_3[i] - pos_1[i])
 
 
-        # orthogonal base (global)
+        # Orthogonal base (global)   
         I = np.eye(3, dtype=float)
         eX, eY, eZ = I[0], I[1], I[2]
 
-        # orthogonal base (local)
+        # Orthogonal base (local)
         ex = [(pos_2[i] - pos_1[i])/self.l for i in range(3)]
         ey = np.cross(d_3,d_2)/(np.linalg.norm(np.cross(d_3,d_2))) 
         ez = np.cross(ex,ey) 
 
+        # Rotation matrix
         R = np.block([[np.dot(eX,ex),np.dot(eY,ex),np.dot(eZ,ex)],
                       [np.dot(eX,ey),np.dot(eY,ey),np.dot(eZ,ey)],
                       [np.dot(eX,ez),np.dot(eY,ez),np.dot(eZ,ez)]])
-           
-        O = np.zeros((3,3)) # 3 ddls per node
-        self.T = np.block([[R, O, O, O],
-                           [O, R, O, O],
-                           [O, O, R, O],
-                           [O, O, O, R]])
+                
+        # Transformation matrix
+        self.T = sp.linalg.block_diag(R, R, R, R)
 
     def getK(self):
 
@@ -157,6 +159,7 @@ class Element:
         Iz, Iy = self.Iz, self.Iy
         Jx = self.Jx
 
+        # K matrix element (local axis)
         K_el = np.array([[E*A/l, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                          [0, 12*E*Iz/(l**3), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                          [0, 0, 12*E*Iy/(l**3), 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -171,8 +174,11 @@ class Element:
                          [0, 6*E*Iz/(l**2), 0, 0, 0, 2*E*Iz/l, 0, -6*E*Iz/(l**2), 0, 0, 0, 4*E*Iz/l]])
 
         self.K_el = np.tril(K_el) + np.tril(K_el, -1).T 
+
+        # K matrix element (global axis)
         self.K_eS = self.T.T @ self.K_el @ self.T
         
+        # Check symmetry
         if not np.allclose(self.K_el.T, self.K_el, atol = 1e-2):
             raise ValueError("K_el matrix not symmetric")
         
@@ -198,15 +204,32 @@ class Element:
                               [0 ,0 , 13*l/420, 0, -l**2/140, 0, 0, 0, 11*l/210, 0, l**2/105, 0],
                               [0 , -13*l/420, 0, 0, 0, -l**2/140, 0, -11*l/210, 0, 0, 0, l**2/105]])
         
+        # M matrix element (local axis)
         self.M_el = np.tril(M_el) + np.tril(M_el, -1).T
+
+        # M matrix element (global axis)
         self.M_eS = self.T.T @ self.M_el @ self.T
 
-        
+        # Check symmetry
         if not np.allclose(self.M_el.T, self.M_el, atol = 1e-2):
             raise ValueError("M_el matrix not symmetric")
         
         if not np.allclose(self.M_eS.T, self.M_eS, atol = 1e-2):
             raise ValueError("M_eS matrix not symmetric")
+        
+def collinearPoints(pos_1, pos_2, pos_3):
+
+    vec1 = np.array([pos_2[0] - pos_1[0], pos_2[1] - pos_1[1], pos_2[2] - pos_1[2]])
+    vec2 = np.array([pos_3[0] - pos_1[0], pos_3[1] - pos_1[1], pos_3[2] - pos_1[2]])
+    
+    return np.allclose(np.cross(vec1, vec2), np.zeros(3))
+
+def adjustPosition(pos_1, pos_2, pos_3, epsilon=0.01):
+    
+    while collinearPoints(pos_1, pos_2, pos_3):
+        pos_3 = (pos_3[0] + epsilon, pos_3[1] + epsilon, pos_3[2] + epsilon)
+        epsilon *= 2  
+    return pos_3
 
 
 def createNodes(geom_data, phys_data):
@@ -259,6 +282,7 @@ def createNodes(geom_data, phys_data):
                 nodes.append(node)
                 incr += 6
                 idx += 1
+                
     
     # Vertical points (for crossing lines)
     for i, x_val in enumerate(x_tab):
@@ -304,7 +328,6 @@ def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
                    [13, 20], [14, 20], [15, 20], [12, 14], [13, 15], [14, 15]]
     
     elems = []
-    count = 0
 
     for pair in nodes_pairs:
 
@@ -320,19 +343,16 @@ def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
         nodes_lumped, M_lumped = geom_data["nodes_lumped"], phys_data["M_lumped"]
         E, G, rho = phys_data["E"], phys_data["G"], phys_data["rho"]
 
-        elem.l = np.sqrt(x*x + y*y + z*z)
-        elem.E = E
-        elem.Iz = Iz
-        elem.Iy = Iy
-        elem.Jx = Jx
-        elem.A = A
-        elem.r = np.sqrt(Jx/A)
-        elem.G = G
-        elem.rho = rho
+        elem.A, elem.l = A, np.sqrt(x*x + y*y + z*z)
+        if elem.l == 0:
+            raise ValueError("Lenght of elem is 0")
+        elem.Iz, elem.Iy, elem.Jx, elem.r  = Iz, Iy, Jx, np.sqrt(Jx/A)
+        elem.E, elem.G, elem.rho  = E, G, rho
        
         elem.getT(nodes_list)
         elem.getK()
         elem.getM(nodes_lumped)
+
         elems.append(elem)
 
     return elems
