@@ -11,74 +11,71 @@ class Solver:
         self.K = None
 
     def assembly(self, elems_list, nodes_list, clamped_nodes):
-         
-        M = np.zeros((6*len(nodes_list), 6*len(nodes_list)))
-        K = np.zeros((6*len(nodes_list), 6*len(nodes_list)))
+        n = 6 * len(nodes_list)
+        M_data, K_data = [], []
+        M_i, M_j = [], []
+        K_i, K_j = [], []
 
         for elem in elems_list:
-             
             DOFs_n1 = elem.locel[0]
             DOFs_n2 = elem.locel[1]
-
+            
             for k in range(6):
                 for h in range(6):
+                    M_data.extend([elem.M_eS[k, h], elem.M_eS[k, h+6], elem.M_eS[k+6, h], elem.M_eS[k+6, h+6]])
+                    M_i.extend([DOFs_n1[k], DOFs_n1[k], DOFs_n2[k], DOFs_n2[k]])
+                    M_j.extend([DOFs_n1[h], DOFs_n2[h], DOFs_n1[h], DOFs_n2[h]])
 
-                    M[DOFs_n1[k], DOFs_n1[h]] += elem.M_eS[k, h]
-                    M[DOFs_n1[k], DOFs_n2[h]] += elem.M_eS[k, h+6]
-                    M[DOFs_n2[k], DOFs_n1[h]] += elem.M_eS[k+6, h]
-                    M[DOFs_n2[k], DOFs_n2[h]] += elem.M_eS[k+6, h+6]
-                    
-                    K[DOFs_n1[k], DOFs_n1[h]] += elem.K_eS[k, h]
-                    K[DOFs_n1[k], DOFs_n2[h]] += elem.K_eS[k, h+6]
-                    K[DOFs_n2[k], DOFs_n1[h]] += elem.K_eS[k+6, h]
-                    K[DOFs_n2[k], DOFs_n2[h]] += elem.K_eS[k+6, h+6]
+                    K_data.extend([elem.K_eS[k, h], elem.K_eS[k, h+6], elem.K_eS[k+6, h], elem.K_eS[k+6, h+6]])
+                    K_i.extend([DOFs_n1[k], DOFs_n1[k], DOFs_n2[k], DOFs_n2[k]])
+                    K_j.extend([DOFs_n1[h], DOFs_n2[h], DOFs_n1[h], DOFs_n2[h]])
+
+        self.M = sp.sparse.coo_matrix((M_data, (M_i, M_j)), shape=(n, n)).tocsr()
+        self.K = sp.sparse.coo_matrix((K_data, (K_i, K_j)), shape=(n, n)).tocsr()
 
         # Check symmetry
-        if not np.allclose(M.T, M, atol = 1e-2):
+        if not np.allclose((self.M - self.M.T).data, 0, atol=1e-2):
             raise ValueError("M matrix not symmetric")
         
-        if not np.allclose(K.T, K, atol = 1e-2):
+        if not np.allclose((self.K - self.K.T).data, 0, atol=1e-2):
             raise ValueError("K matrix not symmetric")
 
-        self.K = K
-        self.M = M
-
-    
     def addLumpedMass(self, nodes_list, nodes_lumped):
-
-        for node in nodes_list:
+        for node in nodes_list.values():
             if node.idx in nodes_lumped:
-                self.M[node.DOF[:3], node.DOF[:3]] += node.M_lumped
+                update = np.zeros(self.M.shape[0])
+                update[node.DOF[:3]] = node.M_lumped
+                
+                # Mettre à jour la diagonale de la matrice M
+                self.M += sp.sparse.diags(update, 0)
 
+        print(f"Total mass : {self.computeMass()} [kg]")
+
+    def computeMass(self):
+        u = np.array([1 if (i == 0 or i % 6 == 0) else 0 for i in range(self.M.shape[0])])
+        return u.T @ self.M @ u
 
     def removeClampedNodes(self, nodes_list, nodes_clamped):
-
-        # Apply clamped nodes condition on K, M
         clamped_dofs = []
-
         for node in nodes_clamped:
-            clamped_dofs.extend([dof for dof in nodes_list[node].DOF])
+            clamped_dofs.extend([dof for dof in nodes_list[f"{node}"].DOF])
 
-        self.M = np.delete(self.M, clamped_dofs, axis=0)  
-        self.M = np.delete(self.M, clamped_dofs, axis=1)  
-        self.K = np.delete(self.K, clamped_dofs, axis=0)  
-        self.K = np.delete(self.K, clamped_dofs, axis=1)  
+        keep = list(set(range(self.M.shape[0])) - set(clamped_dofs))
+        self.M = self.M[keep][:, keep]
+        self.K = self.K[keep][:, keep]
 
-    
     def extractMatrices(self):
-
         return self.K, self.M
 
   
     def solve(self):
-
-        # Solve system
-        eigen_values, eigen_vectors = sp.linalg.eig(self.K, self.M) 
+        # Solve system using sparse eigenvalue solver
+        eigen_values, eigen_vectors = sp.sparse.linalg.eigsh(self.K, k=6, M=self.M, sigma=0, which='LM')
 
         # Sorting (by increasing values)
-        eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2*pi)
+        eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
         order = np.argsort(eigen_values)
-        sorted_eigen_vectors = np.array(eigen_vectors.real)[:, order].squeeze() # sort + shape (162, 162, 1) -> (162, 162)
+        sorted_eigen_vectors = eigen_vectors.real[:, order]
 
         return eigen_values, sorted_eigen_vectors
 
@@ -114,17 +111,17 @@ class Element:
         self.M_el = None
         self.M_eS = None
 
-    def getT(self, nodeList):
+    def getT(self, nodes_list):
 
         pos_1, pos_2 = [], []
         for i in range(3):
-            pos_1.append(nodeList[self.nodes[0]].pos[i])
-            pos_2.append(nodeList[self.nodes[1]].pos[i])
+            pos_1.append(nodes_list[f"{self.nodes[0]}"].pos[i])
+            pos_2.append(nodes_list[f"{self.nodes[1]}"].pos[i])
         
-        # third point
+        # third (not aligned) point
         pos_3 = [2. + pos_2[0], 3.487 + pos_2[1], -4.562 + pos_2[2]] 
 
-        # Check if third point is not aligned
+        # Check that third point is not aligned
         if collinearPoints(pos_1, pos_2, pos_3):
             pos_3 = adjustPosition(pos_1, pos_2, pos_3, epsilon=0.01)
 
@@ -132,7 +129,6 @@ class Element:
         for i in range(3):
             d_2.append(pos_2[i] - pos_1[i])
             d_3.append(pos_3[i] - pos_1[i])
-
 
         # Orthogonal base (global)   
         I = np.eye(3, dtype=float)
@@ -186,7 +182,7 @@ class Element:
             raise ValueError("K_eS matrix not symmetric")
         
 
-    def getM(self, lumped_nodes):
+    def getM(self):
 
         coef = self.rho*self.A*self.l
         l, r = self.l, self.r
@@ -226,16 +222,17 @@ def collinearPoints(pos_1, pos_2, pos_3):
 
 def adjustPosition(pos_1, pos_2, pos_3, epsilon=0.01):
     
+    # modify "pos_3" until it is not aligned anymore
     while collinearPoints(pos_1, pos_2, pos_3):
         pos_3 = (pos_3[0] + epsilon, pos_3[1] + epsilon, pos_3[2] + epsilon)
         epsilon *= 2  
     return pos_3
 
 
-def createNodes(geom_data, phys_data):
-
+def initializeGeometry(geom_data, phys_data):
 
     z_min, z_mid, z_max = geom_data["z_min"], geom_data["z_mid"], geom_data["z_max"]
+
     # z init (lateral bars)
     z_0 = np.linspace(0, z_max, 3)
     z_4 = np.linspace(0, z_mid, 3)
@@ -260,11 +257,7 @@ def createNodes(geom_data, phys_data):
     y_min, y_max = geom_data["y_min"], geom_data["y_max"]
     y_tab = np.array([y_min, y_max])
 
-    #================#
-    # Nodes creation #
-    #================#
-
-    nodes = []
+    nodes_list = {}
     incr = 0
     idx = 0
     nodes_lumped, M_lumped = geom_data["nodes_lumped"], phys_data["M_lumped"]
@@ -279,11 +272,10 @@ def createNodes(geom_data, phys_data):
                     node.M_lumped = M_lumped
                 node.pos = [x_val, y_val, z_val]
                 node.DOF = list(range(incr, incr+6))
-                nodes.append(node)
+                nodes_list[f"{idx}"] = node
                 incr += 6
                 idx += 1
                 
-    
     # Vertical points (for crossing lines)
     for i, x_val in enumerate(x_tab):
         for z_val in z_tab_supp[i]:
@@ -293,7 +285,7 @@ def createNodes(geom_data, phys_data):
                 node.M_lumped = M_lumped
             node.pos = [x_val, 1.0, z_val]
             node.DOF = list(range(incr, incr+6))
-            nodes.append(node)
+            nodes_list[f"{idx}"] = node
             incr += 6
             idx += 1
     
@@ -309,14 +301,9 @@ def createNodes(geom_data, phys_data):
                             node.M_lumped = M_lumped
                         node.pos = [x_val, y_val, z_val]
                         node.DOF = list(range(incr, incr+6))
-                        nodes.append(node)
+                        nodes_list[f"{idx}"] = node
                         incr += 6
                         idx += 1
-
-    return nodes
-
-def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
-
     # oh no please...
     nodes_pairs = [[0, 16], [0, 2], [1, 16], [1, 3], [2, 16], [3, 16],
                    [2, 3], [2, 4], [3, 5], [2, 17], [3, 17], [4, 17], [5, 17], [4, 5],
@@ -326,18 +313,69 @@ def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
                    [9, 11], [9, 18], [8, 19], [9, 19], [10, 19], [11, 19], [8, 9], [10, 11],
                    [27, 29], [28, 30], [29, 31], [30, 32], [31, 14], [32, 15], [12, 20],
                    [13, 20], [14, 20], [15, 20], [12, 14], [13, 15], [14, 15]]
+
+    return nodes_list, nodes_pairs
+
+def interpolate_pos(pos1, pos2, ratio):
+    return [p1 + ratio * (p2 - p1) for p1, p2 in zip(pos1, pos2)]
+
+def addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam):
+
+    if elem_per_beam < 1:
+        return nodes_list_init, nodes_pairs_init
     
+    else:
+
+        new_nodes_pairs = []
+
+        max_dof = max(max(node.DOF) for node in nodes_list_init.values())
+        max_idx = max(node.idx for node in nodes_list_init.values())
+        
+        for node_start_idx, node_end_idx in nodes_pairs_init:
+
+            node_start = nodes_list_init[f"{node_start_idx}"] 
+            node_end = nodes_list_init[f"{node_end_idx}"]
+
+            last_idx = node_start.idx
+            incr = max_dof + 1  
+            
+            for i in range(1, elem_per_beam + 1):
+                ratio = i / (elem_per_beam + 1)
+                new_pos = interpolate_pos(node_start.pos, node_end.pos, ratio)
+                max_idx += 1 
+                
+                new_node = Node()
+                new_node.idx = max_idx
+                new_node.pos = new_pos
+                new_node.DOF = list(range(incr, incr + 6))
+                incr += 6 
+                nodes_list_init[f"{max_idx}"] = new_node
+                
+                new_nodes_pairs.append([last_idx, max_idx])
+                last_idx = max_idx 
+
+                max_dof = max(max(node.DOF) for node in nodes_list_init.values())
+                max_idx = max(node.idx for node in nodes_list_init.values())
+
+            new_nodes_pairs.append([last_idx, node_end_idx])
+        
+        return nodes_list_init, new_nodes_pairs
+    
+
+
+def createElements(nodes_pairs, nodes_list, nodes_lumped, geom_data, phys_data):
+
     elems = []
 
     for pair in nodes_pairs:
 
         elem = Element()
         elem.nodes = pair
-        elem.locel = [nodes_list[pair[0]].DOF, nodes_list[pair[1]].DOF]
+        elem.locel = [nodes_list[f"{pair[0]}"].DOF, nodes_list[f"{pair[1]}"].DOF]
 
-        x = nodes_list[pair[0]].pos[0] - nodes_list[pair[1]].pos[0]
-        y = nodes_list[pair[0]].pos[1] - nodes_list[pair[1]].pos[1]
-        z = nodes_list[pair[0]].pos[2] - nodes_list[pair[1]].pos[2]
+        x = nodes_list[f"{pair[0]}"].pos[0] - nodes_list[f"{pair[1]}"].pos[0]
+        y = nodes_list[f"{pair[0]}"].pos[1] - nodes_list[f"{pair[1]}"].pos[1]
+        z = nodes_list[f"{pair[0]}"].pos[2] - nodes_list[f"{pair[1]}"].pos[2]
 
         A, Iz, Iy, Jx = geom_data["A"], geom_data["Iz"], geom_data["Iy"], geom_data["Jx"]
         nodes_lumped, M_lumped = geom_data["nodes_lumped"], phys_data["M_lumped"]
@@ -351,7 +389,7 @@ def createElements(nodes_list, nodes_lumped, geom_data, phys_data):
        
         elem.getT(nodes_list)
         elem.getK()
-        elem.getM(nodes_lumped)
+        elem.getM()
 
         elems.append(elem)
 

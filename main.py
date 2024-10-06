@@ -50,42 +50,44 @@ def main():
                  "nodes_lumped":nodes_lumped,
                  "nodes_clamped":nodes_clamped}
 
-    #----------------------#
-    #   Assembly process   #
-    #----------------------#
 
-    nodes_list = createNodes(geom_data, phys_data)
-    elems_list = createElements(nodes_list, nodes_lumped, geom_data, phys_data)
-    printData(nodes_list, elems_list, phys_data, geom_data)
+    elem_per_beam_list = np.arange(1, 6+1, 1)
 
+    print(elem_per_beam_list)
 
-    solver = Solver()
-    solver.assembly(elems_list, nodes_list, nodes_clamped)
-    solver.addLumpedMass(nodes_list, nodes_lumped)
-    #solver.removeClampedNodes(nodes_list, nodes_clamped)
+    eigen_freq_matrix = []
 
-    K, M = solver.extractMatrices()
-
-    print(f"Total mass : {computeMass(M)} [kg]")
+    for elem_per_beam in elem_per_beam_list:
 
 
-    #-----------------------#
-    #      Mode shapes      #
-    #-----------------------#
+        # Define initial geometry
+        nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
 
-    eigen_values, eigen_vectors = solver.solve()
+        # Add nodes if needed
+        nodes_list, nodes_pairs = addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam-1)
+        elems_list = createElements(nodes_pairs, nodes_list, nodes_lumped, geom_data, phys_data)
+        #printData(nodes_list, elems_list, phys_data, geom_data)
+        
+        solver = Solver()
+        solver.assembly(elems_list, nodes_list, nodes_clamped)
+        solver.addLumpedMass(nodes_list, nodes_lumped)
+        solver.removeClampedNodes(nodes_list, nodes_clamped)
 
-    # Extract 6 first frequencies/mode shape
-    eig_vals = eigen_values[:6]
-    eig_vects = eigen_vectors[:6]
-    print(f"eigen values : {eig_vals} [Hz] \n")
+        #K, M = solver.extractMatrices()
+        
+        eigen_vals, eigen_vectors = solver.solve()
+        eigen_freq_matrix.append(eigen_vals)
+        #print(f"eigen values : {eigen_vals} [Hz] \n")
+
+    convergence(elem_per_beam_list, eigen_freq_matrix)
+
     
-
     # Display
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
+    #fig = plt.figure()
+    #ax = fig.add_subplot(projection='3d')
     #display(fig, ax, activation, nodes_list, elems_list, geom_data)
-    plotModes(fig, ax, nodes_list, eigen_vectors[0], elems_list, 4.5, nodes_clamped)
+    #plotModes(fig, ax, nodes_list, eigen_vectors[0], elems_list, 6, nodes_clamped)
+
     plt.show()
 
  
