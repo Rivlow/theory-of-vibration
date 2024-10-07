@@ -58,7 +58,7 @@ class Solver:
     def removeClampedNodes(self, nodes_list, nodes_clamped):
         clamped_dofs = []
         for node in nodes_clamped:
-            clamped_dofs.extend([dof for dof in nodes_list[f"{node}"].DOF])
+            clamped_dofs.extend([dof for dof in nodes_list[node].DOF])
 
         keep = list(set(range(self.M.shape[0])) - set(clamped_dofs))
         self.M = self.M[keep][:, keep]
@@ -115,8 +115,8 @@ class Element:
 
         pos_1, pos_2 = [], []
         for i in range(3):
-            pos_1.append(nodes_list[f"{self.nodes[0]}"].pos[i])
-            pos_2.append(nodes_list[f"{self.nodes[1]}"].pos[i])
+            pos_1.append(nodes_list[self.nodes[0]].pos[i])
+            pos_2.append(nodes_list[self.nodes[1]].pos[i])
         
         # third (not aligned) point
         pos_3 = [2. + pos_2[0], 3.487 + pos_2[1], -4.562 + pos_2[2]] 
@@ -272,7 +272,7 @@ def initializeGeometry(geom_data, phys_data):
                     node.M_lumped = M_lumped
                 node.pos = [x_val, y_val, z_val]
                 node.DOF = list(range(incr, incr+6))
-                nodes_list[f"{idx}"] = node
+                nodes_list[idx] = node
                 incr += 6
                 idx += 1
                 
@@ -285,7 +285,7 @@ def initializeGeometry(geom_data, phys_data):
                 node.M_lumped = M_lumped
             node.pos = [x_val, 1.0, z_val]
             node.DOF = list(range(incr, incr+6))
-            nodes_list[f"{idx}"] = node
+            nodes_list[idx] = node
             incr += 6
             idx += 1
     
@@ -301,7 +301,7 @@ def initializeGeometry(geom_data, phys_data):
                             node.M_lumped = M_lumped
                         node.pos = [x_val, y_val, z_val]
                         node.DOF = list(range(incr, incr+6))
-                        nodes_list[f"{idx}"] = node
+                        nodes_list[idx] = node
                         incr += 6
                         idx += 1
     # oh no please...
@@ -333,8 +333,8 @@ def addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam):
         
         for node_start_idx, node_end_idx in nodes_pairs_init:
 
-            node_start = nodes_list_init[f"{node_start_idx}"] 
-            node_end = nodes_list_init[f"{node_end_idx}"]
+            node_start = nodes_list_init[node_start_idx] 
+            node_end = nodes_list_init[node_end_idx]
 
             last_idx = node_start.idx
             incr = max_dof + 1  
@@ -349,7 +349,7 @@ def addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam):
                 new_node.pos = new_pos
                 new_node.DOF = list(range(incr, incr + 6))
                 incr += 6 
-                nodes_list_init[f"{max_idx}"] = new_node
+                nodes_list_init[max_idx] = new_node
                 
                 new_nodes_pairs.append([last_idx, max_idx])
                 last_idx = max_idx 
@@ -371,11 +371,11 @@ def createElements(nodes_pairs, nodes_list, nodes_lumped, geom_data, phys_data):
 
         elem = Element()
         elem.nodes = pair
-        elem.locel = [nodes_list[f"{pair[0]}"].DOF, nodes_list[f"{pair[1]}"].DOF]
+        elem.locel = [nodes_list[pair[0]].DOF, nodes_list[pair[1]].DOF]
 
-        x = nodes_list[f"{pair[0]}"].pos[0] - nodes_list[f"{pair[1]}"].pos[0]
-        y = nodes_list[f"{pair[0]}"].pos[1] - nodes_list[f"{pair[1]}"].pos[1]
-        z = nodes_list[f"{pair[0]}"].pos[2] - nodes_list[f"{pair[1]}"].pos[2]
+        x = nodes_list[pair[0]].pos[0] - nodes_list[pair[1]].pos[0]
+        y = nodes_list[pair[0]].pos[1] - nodes_list[pair[1]].pos[1]
+        z = nodes_list[pair[0]].pos[2] - nodes_list[pair[1]].pos[2]
 
         A, Iz, Iy, Jx = geom_data["A"], geom_data["Iz"], geom_data["Iy"], geom_data["Jx"]
         nodes_lumped, M_lumped = geom_data["nodes_lumped"], phys_data["M_lumped"]
