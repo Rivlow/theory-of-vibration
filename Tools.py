@@ -91,8 +91,9 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
     # Retained only three first DOF's of each node (u, v, w displacements)
     idx_mode = np.arange(0, 6*len(unclamped_nodes_list), 3)
 
+
     initial_positions = np.array([nodes_list[node].pos for node in unclamped_nodes_list])
-    coef = 0.01 * np.max(np.abs(initial_positions))
+    coef = 0.1 * np.max(np.abs(initial_positions))
 
 
     for i in unclamped_nodes_list:
@@ -108,7 +109,7 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
         y = [nodes_list[n1].pos[1], nodes_list[n2].pos[1]]
         z = [nodes_list[n1].pos[2], nodes_list[n2].pos[2]]
 
-        ax.plot(x, y, z)
+        ax.plot(x, y, z, color="red")
 
 def convergence(elem_per_beam_list, eigen_freq_matrix):
 

@@ -57,7 +57,7 @@ def main():
 
     #for elem_per_beam in elem_per_beam_list:
 
-    elem_per_beam = 20
+    elem_per_beam = 4
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
 
@@ -83,14 +83,14 @@ def main():
 
     first_vect = eigen_vectors[:,4]
 
-    print(first_vect)
+    #print(first_vect)
 
     
     # Display
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     #display(fig, ax, activation, nodes_list, elems_list, geom_data)
-    plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, nodes_clamped)
+    plotModes(fig, ax, nodes_list, eigen_vectors[:,0], elems_list, nodes_clamped)
 
     plt.show()
 
