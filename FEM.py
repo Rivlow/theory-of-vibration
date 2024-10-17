@@ -363,7 +363,7 @@ def addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam):
     
 
 
-def createElements(nodes_pairs, nodes_list, nodes_lumped, geom_data, phys_data):
+def createElements(nodes_pairs, nodes_list, geom_data, phys_data):
 
     elems = []
 

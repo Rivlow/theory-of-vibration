@@ -87,20 +87,14 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
 
     # Remove clamped index nodes 
     unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
-    unclamped_nodes_list
-
-    
     mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
     mask = mask[::6]
 
-    # Retained only three first DOF's of each node (u, v, w displacements)
-    initial_positions = np.array([nodes_list[node].pos for node in unclamped_nodes_list])
     coef = 2000 * np.max(np.abs(displacements))
 
+    # Modify only three first DOF's of each node (u, v, w displacements)
     for idx, i in enumerate(unclamped_nodes_list):
-            j = mask[idx]
-            nodes_list[i].pos += coef*displacements[j:j+3]
-
+        nodes_list[i].pos += coef*displacements[mask[idx]:mask[idx]+3]
 
     for elem in elems_list:
 
@@ -113,26 +107,6 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
 
         ax.plot(x, y, z, color="red")
 
-def convergence(elem_per_beam_list, eigen_freq_matrix):
-
-    eigen_freq_matrix = np.array(eigen_freq_matrix)  
-    relative_errors = np.zeros((len(elem_per_beam_list)-1, eigen_freq_matrix.shape[1]))
-
-    for i in range(len(elem_per_beam_list)-1):
-        relative_errors[i] = abs((eigen_freq_matrix[i+1] - eigen_freq_matrix[i]) / eigen_freq_matrix[i] * 100)
-
-    plt.figure(figsize=(10, 6))
-
-    for i in range(relative_errors.shape[1]):
-        plt.plot(elem_per_beam_list[1:], relative_errors[:, i], marker='o', label=f'Mode {i+1}')
-
-    plt.yscale('log')
-    plt.xlabel('Number of elements per beam [-]')
-    plt.ylabel('Relative error [%]')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.show()
 
 
 
