@@ -87,18 +87,20 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
 
     # Remove clamped index nodes 
     unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
+    unclamped_nodes_list
+
+    
+    mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
+    mask = mask[::6]
 
     # Retained only three first DOF's of each node (u, v, w displacements)
-    idx_mode = np.arange(0, 6*len(unclamped_nodes_list), 3)
-
-
     initial_positions = np.array([nodes_list[node].pos for node in unclamped_nodes_list])
-    coef = 0.1 * np.max(np.abs(initial_positions))
+    coef = 2000 * np.max(np.abs(displacements))
 
-
-    for i in unclamped_nodes_list:
-        for j in idx_mode:
+    for idx, i in enumerate(unclamped_nodes_list):
+            j = mask[idx]
             nodes_list[i].pos += coef*displacements[j:j+3]
+
 
     for elem in elems_list:
 
@@ -124,6 +126,7 @@ def convergence(elem_per_beam_list, eigen_freq_matrix):
     for i in range(relative_errors.shape[1]):
         plt.plot(elem_per_beam_list[1:], relative_errors[:, i], marker='o', label=f'Mode {i+1}')
 
+    plt.yscale('log')
     plt.xlabel('Number of elements per beam [-]')
     plt.ylabel('Relative error [%]')
     plt.legend()
