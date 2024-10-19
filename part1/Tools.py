@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import scipy as sp
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 
 def printData(nodes_list, elems_list, phys_data, geom_data):
@@ -84,28 +85,49 @@ def display(fig, ax, activation, nodes_list, elems_list, geom_data):
 
 
 def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
-
-    # Remove clamped index nodes 
+    # Remove clamped index nodes
     unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
     mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
     mask = mask[::6]
-
+    
     coef = 2000 * np.max(np.abs(displacements))
-
-    # Modify only three first DOF's of each node (u, v, w displacements)
+    
+    # Calculate displacement magnitudes
+    disp_magnitudes = {}
     for idx, i in enumerate(unclamped_nodes_list):
-        nodes_list[i].pos += coef*displacements[mask[idx]:mask[idx]+3]
-
+        disp = coef * displacements[mask[idx]:mask[idx]+3]
+        nodes_list[i].pos += disp
+        disp_magnitudes[i] = np.linalg.norm(disp)
+    
+    # Create color map
+    color_map = cm.get_cmap('inferno')
+    min_disp = min(disp_magnitudes.values())
+    max_disp = max(disp_magnitudes.values())
+    
+    # Plot elements with color gradient
     for elem in elems_list:
-
-        n1 = nodes_list[elem.nodes[0]].idx 
+        n1 = nodes_list[elem.nodes[0]].idx
         n2 = nodes_list[elem.nodes[1]].idx
-
         x = [nodes_list[n1].pos[0], nodes_list[n2].pos[0]]
         y = [nodes_list[n1].pos[1], nodes_list[n2].pos[1]]
         z = [nodes_list[n1].pos[2], nodes_list[n2].pos[2]]
-
-        ax.plot(x, y, z, color="red")
+        
+        # Calculate average displacement for the element
+        avg_disp = (disp_magnitudes.get(n1, 0) + disp_magnitudes.get(n2, 0)) / 2
+        
+        # Normalize displacement and get color
+        if max_disp > min_disp:
+            norm_disp = (avg_disp - min_disp) / (max_disp - min_disp)
+        else:
+            norm_disp = 0
+        color = color_map(norm_disp)
+        
+        ax.plot(x, y, z, color=color, linewidth=2)
+    
+    # Add a color bar
+    sm = plt.cm.ScalarMappable(cmap=color_map, norm=plt.Normalize(vmin=min_disp/coef, vmax=max_disp/coef))
+    sm.set_array([])
+    fig.colorbar(sm, ax=ax, label='Displacement [m]')
 
 
 

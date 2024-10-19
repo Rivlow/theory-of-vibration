@@ -49,7 +49,7 @@ class Solver:
                 # Mettre à jour la diagonale de la matrice M
                 self.M += sp.sparse.diags(update, 0)
 
-        print(f"Total mass : {self.computeMass()} [kg]")
+        #print(f"Total mass : {self.computeMass()} [kg]")
 
     def computeMass(self):
         u = np.array([1 if (i == 0 or i % 6 == 0) else 0 for i in range(self.M.shape[0])])

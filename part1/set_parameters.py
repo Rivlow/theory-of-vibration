@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 pi = np.pi
 
-from FEM import *
-from Tools import *
-
-
 def setParams():
 
     # Geometrical values
