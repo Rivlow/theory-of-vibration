@@ -59,7 +59,7 @@ def main():
     n = 100
     t_span = np.linspace(0.1, n*period, n*nb_step)
 
-    eta, phi  = etaPhi(eigen_vals, eigen_vectors, epsilon, M, nodes_clamped, params, t_span, nb_modes)
+    eta, phi, mu  = etaPhiMu(eigen_vals, eigen_vectors, epsilon, M, nodes_clamped, params, t_span, nb_modes)
 
     #---------------------------------------#
     # Mode displacement/acceleration method #
@@ -70,8 +70,10 @@ def main():
     q = modeDisplacementMethod(eta, eigen_vectors, t_span, nb_modes)[z_dir,:]
     q_acc = modeAccelerationMethod(eta, eigen_vals, eigen_vectors, t_span, K, phi, params, nodes_clamped, nb_modes)
 
+    M_norm = mNorm(eta, mu, nb_modes)
+
     plt.figure()
-    plt.plot(q)
+    plt.plot(M_norm)
     plt.show()
     
     # Transient analysis

@@ -70,17 +70,17 @@ def computeH(w_d, w_r, eps_r, t_span):
     return (1 / w_d[:, np.newaxis]) * np.exp(-eps_r[:, np.newaxis] * w_r[:, np.newaxis] * t_matrix) * np.sin(w_d[:, np.newaxis] * t_matrix)
 
 # Main computation functions
-def etaPhi(w_all, x, eps, M, nodes_clamped, params, t_span, nb_modes):
+def etaPhiMu(w_all, x, eps, M, nodes_clamped, params, t_span, nb_modes):
     """Compute eta and phi using vectorized operations and convolution."""
     m_tot, h_, g, dt, freq = params["m_tot"], params["h"], params["g"], params["dt"], params["freq"]
     
     w_d = w_all[:nb_modes] * np.sqrt(1 - eps[:nb_modes]**2)
-    mu_r = np.sum(x[:, :nb_modes] * (M @ x[:, :nb_modes]), axis=0)
+    mu = np.sum(x[:, :nb_modes] * (M @ x[:, :nb_modes]), axis=0)
     
     amplitude, w, DOF_force = forceParams(m_tot, h_, g, dt, freq, nodes_clamped, x[:, 0])
     
     F = computeF(amplitude, w, x[:, :nb_modes], DOF_force, t_span)
-    F_proj = np.sum(x[:, :nb_modes].T[:, :, np.newaxis] * F, axis=1) / mu_r[:, np.newaxis]
+    F_proj = np.sum(x[:, :nb_modes].T[:, :, np.newaxis] * F, axis=1) / mu[:, np.newaxis]
     
     h = computeH(w_d, w_all[:nb_modes], eps[:nb_modes], t_span)
     phi = F_proj
@@ -96,7 +96,7 @@ def etaPhi(w_all, x, eps, M, nodes_clamped, params, t_span, nb_modes):
     eta = np.array([sp.signal.convolve(F_proj[r], h[r], mode='full')[:len(t_span)] * dt 
                     for r in range(nb_modes)])
     
-    return eta, phi
+    return eta, phi, mu
 
 def modeDisplacementMethod(eta, x, t_span, nb_modes):
     """Compute mode displacement method."""
@@ -119,6 +119,9 @@ def modeAccelerationMethod(eta, w_all, x, t_span, K, phi, params, nodes_clamped,
     q -= np.einsum('rm,r,dr->dm', phi[:nb_modes], w_sq_inv, x[:, :nb_modes])
  
     return q
+
+def mNorm(eta, mu, nb_modes):
+    return np.sum(np.power(eta[:nb_modes], 2) * mu[:nb_modes, np.newaxis], axis=0)
 
 def newmark_integration(M, C, K, x0, v0, t_span, m_tot, h, g, freq, nodes_clamped, mode, gamma=0.5, beta=0.25):
     """
