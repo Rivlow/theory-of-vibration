@@ -56,7 +56,7 @@ def main():
 
     period = 1/2 # f = 2 [hz] <-> T = 1/2 [s]
     nb_step = 1000
-    n = 100
+    n = 10
     t_span = np.linspace(0.1, n*period, n*nb_step)
 
     eta, phi, mu  = etaPhiMu(eigen_vals, eigen_vectors, epsilon, M, nodes_clamped, params, t_span, nb_modes)
@@ -67,23 +67,21 @@ def main():
     DOF_1 = extractDOF(23, nodes_clamped)
     DOF_2 = extractDOF(11, nodes_clamped)
     z_dir = DOF_1+2
+
+    """
     q = modeDisplacementMethod(eta, eigen_vectors, t_span, nb_modes)[z_dir,:]
     q_acc = modeAccelerationMethod(eta, eigen_vals, eigen_vectors, t_span, K, phi, params, nodes_clamped, nb_modes)
 
     M_norm = mNorm(eta, mu, nb_modes)
 
-    plt.figure()
-    plt.plot(M_norm)
-    plt.show()
-    
     # Transient analysis
     envelope = extract_envelope(q, t_span)
     #plot_signal_with_envelope(t_span, q, envelope)
     transition_index = np.argmin(np.abs(np.gradient(envelope, t_span)))
     transition_time = t_span[transition_index]
     print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")
-
     """
+    
     # NewMark integration algorithm
     x0 = v0 = np.zeros_like(eigen_vectors[:,0])
     x, v, a = newmark_integration(M, C, K, x0, v0, t_span,
@@ -92,8 +90,12 @@ def main():
                                   nodes_clamped=nodes_clamped,
                                   mode=eigen_vectors[:,0])
 
-    """
+    
 
+    plt.figure()
+    plt.plot(t_span, x[z_dir,:])
+    plt.show()
+    
     
    
     

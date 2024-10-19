@@ -78,19 +78,11 @@ def etaPhiMu(w_all, x, eps, M, nodes_clamped, params, t_span, nb_modes):
     mu = np.sum(x[:, :nb_modes] * (M @ x[:, :nb_modes]), axis=0)
     
     amplitude, w, DOF_force = forceParams(m_tot, h_, g, dt, freq, nodes_clamped, x[:, 0])
-    
     F = computeF(amplitude, w, x[:, :nb_modes], DOF_force, t_span)
     F_proj = np.sum(x[:, :nb_modes].T[:, :, np.newaxis] * F, axis=1) / mu[:, np.newaxis]
     
     h = computeH(w_d, w_all[:nb_modes], eps[:nb_modes], t_span)
     phi = F_proj
-
-    plt.figure()
-    plt.plot(t_span, F_proj[0,:], c="r")
-    plt.figure()
-    plt.plot(t_span, h[0,:], c="b")
-    plt.plot()
-
     
     dt = t_span[1] - t_span[0]
     eta = np.array([sp.signal.convolve(F_proj[r], h[r], mode='full')[:len(t_span)] * dt 
@@ -157,8 +149,8 @@ def newmark_integration(M, C, K, x0, v0, t_span, m_tot, h, g, freq, nodes_clampe
     # Set initial conditions
     x[:, 0] = x0
     v[:, 0] = v0
-    F0 = computeF(A, w, mode, DOF, 0)
-    a[:, 0] = spsolve(M, F0 - C @ v0 - K @ x0)
+    F = computeF(A, w, mode, DOF, t_span)
+    a[:, 0] = spsolve(M, F[:,0] - C @ v0 - K @ x0)
     
     # Compute constant matrices
     A_mat = (M + gamma * dt * C + beta * dt**2 * K).tocsc()
@@ -170,10 +162,10 @@ def newmark_integration(M, C, K, x0, v0, t_span, m_tot, h, g, freq, nodes_clampe
         v_pred = v[:, i-1] + (1 - gamma) * dt * a[:, i-1]
         
         # Compute force at current time
-        F_current = computeF(A, w, mode, DOF, t_span[i])
+        F_current = computeF(A, w, mode, DOF, t_span)
         
         # Compute effective force
-        F_eff = F_current - C @ v_pred - K @ x_pred
+        F_eff = F[:,i] - C @ v_pred - K @ x_pred
         
         # Solve for acceleration
         da = A_inv @ F_eff
