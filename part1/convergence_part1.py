@@ -25,6 +25,9 @@ def plotConvergence(elem_per_beam_list, eigen_freq_matrix):
     plt.legend()
     plt.grid(True)
     
+    plt.savefig('theory_of_vibration/part1/Pictures/convergence_part1.png')
+    plt.savefig('theory_of_vibration/part1/Pictures/convergence_part1.PDF')   
+
     plt.show()
 
 

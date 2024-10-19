@@ -83,6 +83,9 @@ def display(fig, ax, activation, nodes_list, elems_list, geom_data):
         ax.legend(loc="best")
         ax.grid(True)
 
+        plt.savefig('theory_of_vibration/part1/Pictures/structure.png')
+        plt.savefig('theory_of_vibration/part1/Pictures/structure.PDF')
+
 
 def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
     # Remove clamped index nodes
@@ -128,6 +131,9 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
     sm = plt.cm.ScalarMappable(cmap=color_map, norm=plt.Normalize(vmin=min_disp/coef, vmax=max_disp/coef))
     sm.set_array([])
     fig.colorbar(sm, ax=ax, label='Displacement [m]')
+
+    plt.savefig('theory_of_vibration/part1/Pictures/mode_shape.png')
+    plt.savefig('theory_of_vibration/part1/Pictures/mode_shape.PDF')
 
 
 

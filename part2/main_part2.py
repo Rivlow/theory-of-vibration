@@ -16,9 +16,9 @@ from part1 import FEM, set_parameters
 
 def main():
 
-    #---------------------------------------------------#
-    # From part 1, compute K, M, eigen values and modes #
-    #---------------------------------------------------# 
+    #===============================================#
+    # From part 1, compute K, M, eigen values/modes #
+    #===============================================#
     geom_data, phys_data = set_parameters.setParams()
     elem_per_beam = 1
 
@@ -40,9 +40,9 @@ def main():
     node_observation = [10, 11]
     nodes_clamped = [0, 1, 6, 7, 12, 13]
 
-    #-----------------------------#
+    #=============================#
     # Transient response (part 2) #
-    #-----------------------------#
+    #=============================#
     m_tot = 9*80 # [kg]
     h = 0.2 # [m]
     g = 9.81 # [m/s^2]
@@ -52,24 +52,23 @@ def main():
     nb_modes = 4
 
     a, b, C = dampingMatrix(K, M, eigen_vals[0], eigen_vals[1])
-    K, M, C = K.tocsr(), M.tocsr(), C.tocsr()
     epsilon = dampingRatios(a, b, eigen_vals)
 
-    print(epsilon)
-
-    period = 1/2
+    period = 1/2 # f = 2 [hz] <-> T = 1/2 [s]
     nb_step = 1000
     n = 100
     t_span = np.linspace(0.1, n*period, n*nb_step)
 
     eta, phi  = etaPhi(eigen_vals, eigen_vectors, epsilon, M, nodes_clamped, params, t_span, nb_modes)
 
-    # Mode displacement/acceleration method
+    #---------------------------------------#
+    # Mode displacement/acceleration method #
+    #---------------------------------------#
     DOF_1 = extractDOF(23, nodes_clamped)
     DOF_2 = extractDOF(11, nodes_clamped)
     z_dir = DOF_1+2
     q = modeDisplacementMethod(eta, eigen_vectors, t_span, nb_modes)[z_dir,:]
-    #q_acc = modeAccelerationMethod(eta, eigen_vals, eigen_vectors, t_span, K, phi, params, nodes_clamped, nb_modes)
+    q_acc = modeAccelerationMethod(eta, eigen_vals, eigen_vectors, t_span, K, phi, params, nodes_clamped, nb_modes)
 
     plt.figure()
     plt.plot(q)
@@ -96,9 +95,6 @@ def main():
     
    
     
-
-
-   
 
 if __name__  == "__main__":
     main()
