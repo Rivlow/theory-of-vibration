@@ -72,7 +72,7 @@ This method calculates displacement using modal superposition.
 
 Equation:
 
-$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}_r$
+$\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}\_r$
 
 ### 5. Mode Acceleration Method (modeAccelerationMethod)
 
@@ -81,7 +81,7 @@ This method calculates displacement using the mode acceleration method.
 Equation:
 
 
-$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t)$
+$\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n\_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}\_r + \mathbf{K}^{-1}\mathbf{F}(t)$
 
 This function implements the Newmark integration algorithm to solve the equation of motion.
 
