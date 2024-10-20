@@ -12,14 +12,8 @@ The main code is divided into two primary parts:
 This section initializes geometry, creates elements, assembles matrices, and calculates eigenvalues and modes.
 
 ```markdown
-1. Initialize parameters and geometry
-2. Create elements
-3. Assemble matrices
-4. Add lumped masses
-5. Remove clamped nodes
-6. Extract K and M matrices
-7. Solve for frequencies and modes
-8. Normalize eigenvectors
+1. Compute K and M matrices
+2. Solve for frequencies and (normalized) modes
 ```
 
 ### Part 2: Transient Response
@@ -27,23 +21,19 @@ This section initializes geometry, creates elements, assembles matrices, and cal
 This section calculates the transient response of the system using various methods.
 
 ```markdown
-1. Define simulation parameters
-2. Calculate damping matrix
-3. Compute damping ratios
-4. Define period and time span
-5. Compute applied force
-6. Apply mode displacement method
-7. Apply mode acceleration method
-8. Analyze transient response
-9. Apply Newmark integration algorithm
-10. Perform FFT analysis of the response
+1. Compute damping ratios and damping Matrix
+2. Compute applied force
+3. Apply mode displacement method
+5. Apply mode acceleration method
+6. Analyze transient response
+7. Apply Newmark integration algorithm and compute its FFT 
 ```
 
 ## Main Mathematical Functions
 
 ### 1. Force Computation (computeForce)
 
-This function calculates the force induced by supporters on excitation nodes.
+This function calculates the force induced by supporters on excitation nodes. The force is uniformly distributed.
 
 Main equation:
 $$F(t) = -\frac{A}{n_{nodes}} \sin(\omega t)$$
@@ -58,7 +48,7 @@ where:
 This function computes the impulse response for all modes.
 
 Equation:
-$$h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t)$$
+$$ h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t) $$
 
 where:
 - $\omega_d$: damped frequency
