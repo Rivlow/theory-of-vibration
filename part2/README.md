@@ -81,13 +81,13 @@ This method calculates displacement using the mode acceleration method.
 Equation:
 
 
-$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} (\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2})\mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t)$
+$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t)$
 
 This function implements the Newmark integration algorithm to solve the equation of motion.
 
 Main equations:
 
-- $\displaystyle \mathbf{v}_{i+1} = \mathbf{v}_i + [(1-\gamma)h]\mathbf{a}_i + \gamma h \mathbf{a}_{i+1}$
-- $\displaystyle \mathbf{x}_{i+1} = \mathbf{x}_i + h\mathbf{v}_i + [(0.5-\beta)h^2]\mathbf{a}_i + \beta h^2 \mathbf{a}_{i+1}$
+- $\displaystyle \mathbf{v}_{i+1} = \mathbf{v}_i + [(1-\gamma)h]\mathbf{a}_i $
+- $\displaystyle \mathbf{x}_{i+1} = \mathbf{x}_i + h\mathbf{v}_i $
 
 where $\gamma$ and $\beta$ are parameters of the Newmark algorithm.
