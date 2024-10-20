@@ -48,7 +48,7 @@ where:
 This function computes the impulse response for all modes.
 
 Equation:
-$$ h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t) $$
+$$h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t) $$
 
 where:
 - $\omega_d$: damped frequency
@@ -76,15 +76,16 @@ $$\mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}_r$$
 This method calculates displacement using the mode acceleration method.
 
 Equation:
-$$\mathbf{q}_{acc}(t) = \sum_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t) - \sum_{r=1}^{n_{modes}} \frac{\phi_r(t)}{\omega_r^2} \mathbf{x}_r$$
+$$\mathbf{q}_\text{acc}(t) = \sum_{r=1}^{n_\text{modes}} \eta_r(t) \mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t) - \sum_{r=1}^{n_\text{modes}} \frac{\phi_r(t)}{\omega_r^2} \mathbf{x}_r$$
 
 ### 6. Newmark Integration (NewmarkIntegration)
 
 This function implements the Newmark integration algorithm to solve the equation of motion.
 
 Main equations:
-- $\mathbf{v}_{i+1} = \mathbf{v}_i + [(1-\gamma)h]\mathbf{a}_i + \gamma h \mathbf{a}_{i+1}$
-- $\mathbf{x}_{i+1} = \mathbf{x}_i + h\mathbf{v}_i + [(0.5-\beta)h^2]\mathbf{a}_i + \beta h^2 \mathbf{a}_{i+1}$
+
+$$\mathbf{v}_{i+1} = \mathbf{v}_i + [(1-\gamma)h]\mathbf{a}_i + \gamma h \mathbf{a}_{i+1}$$
+$$\mathbf{x}_{i+1} = \mathbf{x}_i + h\mathbf{v}_i + [(0.5-\beta)h^2]\mathbf{a}_i + \beta h^2 \mathbf{a}_{i+1}$$
 
 where $\gamma$ and $\beta$ are parameters of the Newmark algorithm.
 
