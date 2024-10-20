@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import axes3d, Axes3D
 pi = np.pi
 
 from FEM import *
-from Tools import *
+from theory_of_vibration.part1.Tools_part1 import *
 from set_parameters import *
 
 def plotConvergence(elem_per_beam_list, eigen_freq_matrix):

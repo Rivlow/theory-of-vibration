@@ -3,8 +3,11 @@ from scipy.sparse.linalg import inv
 from scipy.sparse.linalg import spsolve
 from scipy.signal import hilbert
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.fft import fft, fftfreq
 
-def newmark_integration(M, C, K, x0, v0, t_span, F, gamma, beta):
+def NewmarkIntegration(M, C, K, x0, v0, t_span, F,
+                                 gamma, beta):
     n = len(x0)
     nt = len(t_span)
     h = t_span[1] - t_span[0]
@@ -38,7 +41,7 @@ def newmark_integration(M, C, K, x0, v0, t_span, F, gamma, beta):
 
     return x, v, a
 
-def extract_envelope(q, t_span):
+def extractEnvelope(q, t_span):
     """
     Extraire l'enveloppe du signal q en utilisant la transformée de Hilbert.
     """
@@ -46,18 +49,49 @@ def extract_envelope(q, t_span):
     amplitude_envelope = np.abs(analytic_signal)
     return amplitude_envelope
 
-def plot_signal_with_envelope(t_span, q, envelope):
-    plt.figure(figsize=(12, 6))
-    plt.plot(t_span, q, label='Signal')
-    plt.plot(t_span, envelope, 'r', label='Enveloppe')
-    plt.plot(t_span, -envelope, 'r')
-    plt.xlabel('Temps [s]')
-    plt.ylabel('Amplitude')
-    plt.title('Signal avec son enveloppe')
-    plt.legend()
-    plt.grid(True)
+def analysisFFT(x, t_span):
+    # Calcul de la FFT
+    N = len(t_span)
+    T = t_span[1] - t_span[0]  # période d'échantillonnage
+    yf = fft(x)
+    xf = fftfreq(N, T)[:N//2]  # fréquences positives uniquement
+    amplitude = 2.0/N * np.abs(yf[0:N//2])
+
+    plt.figure()
+    plt.plot(xf, amplitude)
     plt.show()
 
+    """
+    # Calcul de l'amplitude du spectre
+    amplitude = 2.0/N * np.abs(yf[0:N//2])
+
+    # Création du graphique 3D
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Création d'une grille pour le graphique 3D
+    X, Y = np.meshgrid(t_span, xf)
+    Z = np.zeros_like(X)
+
+    Z = amplitude[:, np.newaxis] * np.sin(2 * np.pi * xf[:, np.newaxis] * t_span)
+
+    # Tracé de la surface 3D
+    surf = ax.plot_surface(X, Y, Z, cmap='viridis', linewidth=0, antialiased=False)
+
+    # Configuration des axes et du titre
+    ax.set_xlabel('Temps')
+    ax.set_ylabel('Fréquence (Hz)')
+    ax.set_zlabel('Amplitude')
+    ax.set_title('Analyse FFT - Représentation 3D')
+
+    # Ajout d'une barre de couleur
+    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
+
+    plt.show()
+
+        """
+    # Retour des résultats de la FFT pour une utilisation ultérieure si nécessaire
+    return xf, amplitude
 
 
 
