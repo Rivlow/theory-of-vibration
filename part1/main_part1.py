@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d, Axes3D
+import sys
+import os
 pi = np.pi
 
 from FEM import *
-from theory_of_vibration.part1.Tools_part1 import *
+from Tools_part1 import *
 from set_parameters import *
 
 def main():
@@ -13,7 +14,7 @@ def main():
     activation = {"print":True, "plot":True}
 
     geom_data, phys_data = setParams()
-    elem_per_beam = 10
+    elem_per_beam = 1
 
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -34,9 +35,9 @@ def main():
     # Display
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    #display(fig, ax, activation, nodes_list, elems_list, geom_data)
-    #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"])
-    #plt.show()
+    display(fig, ax, activation, nodes_list, elems_list, geom_data, save=False)
+    #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=False)
+    plt.show()
 
 if __name__  == "__main__":
     main()

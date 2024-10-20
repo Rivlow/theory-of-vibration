@@ -1,5 +1,12 @@
 import matplotlib.pyplot as plt
 
+def extractDOF(node_index, nodes_clamped):
+    """Find DOF considering clamped nodes (not present in eigen_mode)."""
+    clamped_before = sum(1 for n in nodes_clamped if n < node_index)
+    adjusted_index = node_index - clamped_before
+    return 6 * adjusted_index  # first DOF
+
+
 def plotAll(t_span, *args, separate):
     if len(args) == 0:
         raise ValueError("At least 1 param needed to plot.")
@@ -7,7 +14,6 @@ def plotAll(t_span, *args, separate):
     param_names = ['displacement method', 'acceleration method', 'Newmark']
     params = dict(zip(param_names[:len(args)], args))
     
-    # Définir des styles différents pour chaque courbe
     styles = [
         {'color': 'blue', 'linestyle': '-', 'linewidth': 2},
         {'color': 'red', 'linestyle': '--', 'linewidth': 2.5},

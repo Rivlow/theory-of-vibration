@@ -41,13 +41,14 @@ def NewmarkIntegration(M, C, K, x0, v0, t_span, F,
 
     return x, v, a
 
-def extractEnvelope(q, t_span):
-    """
-    Extraire l'enveloppe du signal q en utilisant la transformée de Hilbert.
-    """
+
+def analysisTransient(q, t_span):
+
     analytic_signal = hilbert(q)
     amplitude_envelope = np.abs(analytic_signal)
-    return amplitude_envelope
+    transition_index = np.argmin(np.abs(np.gradient(amplitude_envelope, t_span)))
+    transition_time = t_span[transition_index]
+    print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")
 
 def analysisFFT(x, t_span):
     # Calcul de la FFT

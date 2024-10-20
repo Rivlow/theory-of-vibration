@@ -25,7 +25,7 @@ def printData(nodes_list, elems_list, phys_data, geom_data):
     print("\n")
 
 
-def display(fig, ax, activation, nodes_list, elems_list, geom_data):
+def display(fig, ax, activation, nodes_list, elems_list, geom_data, save):
 
     if activation["plot"]:
         # Nodes display
@@ -83,11 +83,12 @@ def display(fig, ax, activation, nodes_list, elems_list, geom_data):
         ax.legend(loc="best")
         ax.grid(True)
 
-        plt.savefig('theory_of_vibration/part1/Pictures/structure.png')
-        plt.savefig('theory_of_vibration/part1/Pictures/structure.PDF')
+        if save:
+            plt.savefig('part1/Pictures/structure.png')
+            plt.savefig('part1/Pictures/structure.PDF')
 
 
-def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
+def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped, save):
     # Remove clamped index nodes
     unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
     mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
@@ -132,8 +133,9 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped):
     sm.set_array([])
     fig.colorbar(sm, ax=ax, label='Displacement [m]')
 
-    plt.savefig('theory_of_vibration/part1/Pictures/mode_shape.png')
-    plt.savefig('theory_of_vibration/part1/Pictures/mode_shape.PDF')
+    if save:
+        plt.savefig('part1/Pictures/mode_shape.png')
+        plt.savefig('part1/Pictures/mode_shape.PDF')
 
 
 

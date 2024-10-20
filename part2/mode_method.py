@@ -4,11 +4,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 pi = np.pi
 
-def extractDOF(node_index, nodes_clamped):
-    """Find DOF considering clamped nodes (not present in eigen_mode)."""
-    clamped_before = sum(1 for n in nodes_clamped if n < node_index)
-    adjusted_index = node_index - clamped_before
-    return 6 * adjusted_index  # first DOF
+from Tools_part2 import *
 
 
 def computeForce(params, 

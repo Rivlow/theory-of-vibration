@@ -18,9 +18,9 @@ from Tools_part2 import *
 
 def main():
 
-    #################################################
+    #===========================================#
     # Part 1 : compute K, M, eigen values/modes #
-    #################################################
+    #===========================================#
     geom_data, phys_data = set_parameters.setParams()
     elem_per_beam = 1
 
@@ -37,14 +37,14 @@ def main():
     frequencies, modes = solver.solve()
     modes = normalize_eigenvectors(modes, M) # sparse.linalg.eig does not normalize
 
-    ###############################
+    #=============================#
     # Part 2 : transient response #
-    ###############################
+    #=============================#
     params = {"m_tot":9*80, "h":0.2, "g":9.81, "dt":0.1, "freq":2}
     nb_modes = 6
 
     nodes_force = [23, 24]
-    nodes_observation = [10, 11]
+    nodes_obs = [10, 11]
     nodes_clamped = [0, 1, 6, 7, 12, 13]
 
     a, b, C = dampingMatrix(K, M, 2*pi*frequencies[0], 2*pi*frequencies[1])
@@ -57,26 +57,23 @@ def main():
 
     F = computeForce(params, 
                      nodes_clamped, nodes_force, 2,
-                     modes, 
-                     t_span)
+                     modes, t_span)
 
     #---------------------------------------#
     # Mode displacement/acceleration method #
     #---------------------------------------#
-    DOF_1 = extractDOF(23, nodes_clamped)
-    DOF_2 = extractDOF(11, nodes_clamped)
+    DOF_1 = extractDOF(nodes_obs[1], nodes_clamped)
+    DOF_2 = extractDOF(nodes_obs[1], nodes_clamped)
     z_dir = DOF_1+2
 
-    """
+    
     eta, phi, mu  = etaPhiMu(2*pi*frequencies, modes, epsilon, M, F, t_span, nb_modes)
     q = modeDisplacementMethod(eta, modes, nb_modes)
     q_acc = modeAccelerationMethod(eta, 2*pi*frequencies, modes, t_span, K, phi, F, nb_modes)
     M_norm = mNorm(eta, mu, nb_modes)
-    """
-
+    analysisTransient(q, t_span)
     #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, nb_modes, z_dir)
     
-
     #-------------------------------#
     # NewMark integration algorithm #
     #-------------------------------#
@@ -85,19 +82,12 @@ def main():
                                                       x0, v0, t_span, F,
                                                       0.5, 0.25)
     
+    analysisFFT(q_nm[z_dir,:], t_span) # FFT analysis
     #plotAll(t_span, q[z_dir,:], q_nm[z_dir,:], separate=False)
-
     
-    """
-    # Transient analysis
-    envelope = extractEnvelope(q, t_span)
-    transition_index = np.argmin(np.abs(np.gradient(envelope, t_span)))
-    transition_time = t_span[transition_index]
-    print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")
-    """
     
-    # FFt analysis
-    analysisFFT(q_nm[z_dir,:], t_span)
+    
+    
 
 
 
