@@ -80,7 +80,8 @@ This method calculates displacement using the mode acceleration method.
 
 Equation:
 
-$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}_r$
+$\displaystyle \mathbf{q}(t) = \sum_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}_r + \mathbf{K}^{-1}\mathbf{F}(t) $
+
 
 ### 6. Newmark Integration (NewmarkIntegration)
 
