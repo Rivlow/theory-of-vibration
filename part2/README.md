@@ -87,7 +87,7 @@ This function implements the Newmark integration algorithm to solve the equation
 
 Main equations:
 
-- $\displaystyle \mathbf{v}_{i+1} = \mathbf{v}_i + [(1-\gamma)h]\mathbf{a}_i + \mathbf{a}_{i+1}$
-- $\displaystyle \mathbf{x}_{i+1} = \mathbf{x}_i + h\mathbf{v}_i $
+- $\displaystyle \mathbf{v}\_{i+1} = \mathbf{v}\_i + [(1-\gamma)h]\mathbf{a}\_i + \gamma h \mathbf{a}\_{i+1}$
+- $\displaystyle \mathbf{x}\_{i+1} = \mathbf{x}\_i + h\mathbf{v}\_i + [(0.5-\beta)h^2]\mathbf{a}\_i + \beta h^2 \mathbf{a}\_{i+1}$
 
 where $\gamma$ and $\beta$ are parameters of the Newmark algorithm.
