@@ -1,17 +1,17 @@
 import numpy as np
-from damping import *
 import os
 import scipy
 import sys
-pi = np.pi
-from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
 
+from part1 import FEM, set_parameters
+from damping import *
+from NewMark import *
+from mode_method import *
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from part1 import FEM, set_parameters
 
 
 def main():
@@ -36,10 +36,6 @@ def main():
     eigen_vectors = normalize_eigenvectors(eigen_vectors, M) # sparse.linalg.eig does not normalize
     eigen_vals = 2*pi*eigen_vals
 
-    node_force = [23, 24]
-    node_observation = [10, 11]
-    nodes_clamped = [0, 1, 6, 7, 12, 13]
-
     #=============================#
     # Transient response (part 2) #
     #=============================#
@@ -51,15 +47,21 @@ def main():
     params = {"m_tot":m_tot, "h":h, "g":g, "dt":delta_t, "freq":freq}
     nb_modes = 4
 
+    node_force = [23, 24]
+    node_observation = [10, 11]
+    nodes_clamped = [0, 1, 6, 7, 12, 13]
+
     a, b, C = dampingMatrix(K, M, eigen_vals[0], eigen_vals[1])
     epsilon = dampingRatios(a, b, eigen_vals)
 
     period = 1/2 # f = 2 [hz] <-> T = 1/2 [s]
     nb_step = 1000
-    n = 10
+    n = 100
     t_span = np.linspace(0.1, n*period, n*nb_step)
 
-    eta, phi, mu  = etaPhiMu(eigen_vals, eigen_vectors, epsilon, M, nodes_clamped, params, t_span, nb_modes)
+    F = computeForce(params, nodes_clamped, eigen_vectors, nb_modes, t_span)
+
+    eta, phi, mu  = etaPhiMu(eigen_vals, eigen_vectors, epsilon, M, F, t_span, nb_modes)
 
     #---------------------------------------#
     # Mode displacement/acceleration method #
@@ -69,8 +71,23 @@ def main():
     z_dir = DOF_1+2
 
     """
+    
     q = modeDisplacementMethod(eta, eigen_vectors, t_span, nb_modes)[z_dir,:]
     q_acc = modeAccelerationMethod(eta, eigen_vals, eigen_vectors, t_span, K, phi, params, nodes_clamped, nb_modes)
+
+    q_fft = np.fft.fft(q)
+    freq = np.fft.fftfreq(len(t_span), t_span[1]-t_span[0]) #frequency samples
+
+    
+    # On ne garde que la partie positive du spectre
+    positive_freq = freq[:len(freq)//2]
+    magnitudes = np.abs(q_fft)[:len(freq)//2]
+
+    # Détection des pics (fréquences d'excitation)
+    peaks, _ = find_peaks(magnitudes)  # Ajustez le seuil si nécessaire
+    excitation_freqs = positive_freq[peaks]
+
+ 
 
     M_norm = mNorm(eta, mu, nb_modes)
 
@@ -80,23 +97,23 @@ def main():
     transition_index = np.argmin(np.abs(np.gradient(envelope, t_span)))
     transition_time = t_span[transition_index]
     print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")
+
+
     """
     
     # NewMark integration algorithm
     x0 = v0 = np.zeros_like(eigen_vectors[:,0])
     x, v, a = newmark_integration(M, C, K, x0, v0, t_span,
-                                  m_tot,
-                                  h, g=9.81, freq=2,
-                                  nodes_clamped=nodes_clamped,
-                                  mode=eigen_vectors[:,0])
-
-    
+                                  F, gamma=0.5, beta=0.25)
 
     plt.figure()
     plt.plot(t_span, x[z_dir,:])
     plt.show()
+
+
     
-    
+
+
    
     
 

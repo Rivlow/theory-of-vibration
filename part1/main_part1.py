@@ -29,18 +29,14 @@ def main():
     solver.removeClampedNodes(nodes_list, geom_data["nodes_clamped"])
 
     K, M = solver.extractMatrices()
-    
     eigen_vals, eigen_vectors = solver.solve()
-    print(f"eigen values : {eigen_vals} [Hz] \n")
 
     # Display
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     #display(fig, ax, activation, nodes_list, elems_list, geom_data)
-    plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"])
-
-
-    plt.show()
+    #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"])
+    #plt.show()
 
 if __name__  == "__main__":
     main()
