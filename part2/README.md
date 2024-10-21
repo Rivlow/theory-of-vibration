@@ -33,10 +33,7 @@ This section calculates the transient response of the system using various metho
 
 ### 1. Force Computation (computeForce)
 
-This function calculates the force induced by supporters on excitation nodes. The force is uniformly distributed.
-
-Main equation:
-
+This function calculates the force induced by supporters on excitation nodes. The force is uniformly distributed:
 $\displaystyle F(t) = -\frac{A}{n_{nodes}} \sin(\omega t)$
 
 where:
@@ -46,10 +43,7 @@ where:
 
 ### 2. Impulse Response Calculation (computeH)
 
-This function computes the impulse response for all modes.
-
-Equation:
-
+This function computes the impulse response for all modes:
 $\displaystyle h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t)$
 
 where:
@@ -59,28 +53,21 @@ where:
 
 ### 3. Calculation of eta, phi, and mu (etaPhiMu)
 
-This function calculates eta (modal displacement), phi (modal force), and mu (modal mass).
-
-Main equations:
+This function calculates eta (modal displacement), phi (modal force), and mu (modal mass):
 - $\displaystyle \mu_r = \mathbf{x}_r^T \mathbf{M} \mathbf{x}_r$
 - $\displaystyle \phi_r(t) = \frac{\mathbf{x}_r^T \mathbf{F}(t)}{\mu_r}$
 - $\displaystyle \eta_r(t) = \int_0^t h_r(t-\tau) \phi_r(\tau) d\tau$
 
 ### 4. Mode Displacement Method (modeDisplacementMethod)
 
-This method calculates displacement using modal superposition.
-
-Equation:
-
+This method calculates displacement using modal superposition:
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}\_r$
 
 ![displ](Pictures/mode_displacement_method.png)
 
 ### 5. Mode Acceleration Method (modeAccelerationMethod)
 
-This method calculates displacement using the mode acceleration method.
-
-Equation:
+This method calculates displacement using the mode acceleration method:
 
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n\_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}\_r + \mathbf{K}^{-1}\mathbf{F}(t)$
 ![acc](Pictures/mode_acceleration_method.png)
