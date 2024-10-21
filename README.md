@@ -26,9 +26,9 @@ This project implements a comprehensive Finite Element Analysis (FEM) of three-d
 
 ![3D Structure Model](Pictures/structure.png)
 
-- Create complex 3D geometries using beam elements
-- Define various boundary conditions, including clamped nodes
-- Add lumped masses to specific nodes for accurate mass distribution
+- Create 3D geometries using beam elements
+- Define boundary conditions using clamped nodes
+- Add lumped masses to specific nodes for mass distribution
 
 ## Finite Element Code
 
