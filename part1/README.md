@@ -53,7 +53,7 @@ The local stiffness matrix $\mathbf{K}\_e$ for a beam element is given by:
 0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 \\\
 0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 \\\
 0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l}
-\end{bmatrix}$
+\end{bmatrix}
 ```
 
 Where:
@@ -82,7 +82,7 @@ The local mass matrix $\mathbf{M}\_e$ for a beam element is given by:
 0 & 0 & 0 & 70r^2 & 0 & 0 & 0 & 0 & 0 & 140r^2 & 0 & 0 \\\
 0 & 0 & 13l & 0 & -3l^2 & 0 & 0 & 0 & 22l & 0 & 4l^2 & 0 \\\
 0 & -13l & 0 & 0 & 0 & -3l^2 & 0 & -22l & 0 & 0 & 0 & 4l^2
-\end{bmatrix}$
+\end{bmatrix}
 ```
 
 Where:
@@ -103,7 +103,7 @@ The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 \mathbf{0} & \mathbf{R} & \mathbf{0} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{0} & \mathbf{R} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{R}
-\end{bmatrix}$
+\end{bmatrix}
 ```
 
 Where $\mathbf{R}$ is the rotation matrix:
@@ -112,7 +112,7 @@ $\displaystyle \mathbf{R} = \begin{bmatrix}
 \cos(\theta_x) & \cos(\theta_y) & \cos(\theta_z) \\\
 \cos(\phi_x) & \cos(\phi_y) & \cos(\phi_z) \\\
 \cos(\psi_x) & \cos(\psi_y) & \cos(\psi_z)
-\end{bmatrix}$
+\end{bmatrix}
 ```
 Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local element axes and the global coordinate axes.
 
@@ -120,8 +120,8 @@ Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local elemen
 
 The global stiffness and mass matrices are assembled by summing the contributions from each element:
 
-- $\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
-- $\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
+ $\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
+ $\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
 
 Where $n\_e$ is the total number of elements in the structure.
 
