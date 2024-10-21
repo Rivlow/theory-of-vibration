@@ -39,7 +39,8 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
 
 The local stiffness matrix $\mathbf{K}\_e$ for a beam element is given by:
 
-$\displaystyle \mathbf{K}\_e = \begin{bmatrix}
+```math
+\mathbf{K}\_e = \begin{bmatrix}
 \frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\\
 0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} & 0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} \\\
 0 & 0 & \frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 & 0 & 0 & -\frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 \\\
@@ -53,6 +54,7 @@ $\displaystyle \mathbf{K}\_e = \begin{bmatrix}
 0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 \\\
 0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l}
 \end{bmatrix}$
+```
 
 Where:
 - $E$: Young's modulus
@@ -66,7 +68,8 @@ Where:
 
 The local mass matrix $\mathbf{M}\_e$ for a beam element is given by:
 
-$\displaystyle \mathbf{M}\_e = \frac{\rho Al}{420} \begin{bmatrix}
+```math
+\mathbf{M}\_e = \frac{\rho Al}{420} \begin{bmatrix}
 140 & 0 & 0 & 0 & 0 & 0 & 70 & 0 & 0 & 0 & 0 & 0 \\\
 0 & 156 & 0 & 0 & 0 & 22l & 0 & 54 & 0 & 0 & 0 & -13l \\\
 0 & 0 & 156 & 0 & -22l & 0 & 0 & 0 & 54 & 0 & 13l & 0 \\\
@@ -80,6 +83,7 @@ $\displaystyle \mathbf{M}\_e = \frac{\rho Al}{420} \begin{bmatrix}
 0 & 0 & 13l & 0 & -3l^2 & 0 & 0 & 0 & 22l & 0 & 4l^2 & 0 \\\
 0 & -13l & 0 & 0 & 0 & -3l^2 & 0 & -22l & 0 & 0 & 0 & 4l^2
 \end{bmatrix}$
+```
 
 Where:
 - $\rho$: Mass density
@@ -93,7 +97,6 @@ $\displaystyle \mathbf{K}\_{e\_g} = \mathbf{T}^T \mathbf{K}\_e \mathbf{T}$
 $\displaystyle \mathbf{M}\_{e\_g} = \mathbf{T}^T \mathbf{M}\_e \mathbf{T}$
 
 The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
-
 ```math
 \mathbf{T} = \begin{bmatrix}
 \mathbf{R} & \mathbf{0} & \mathbf{0} & \mathbf{0} \\\
@@ -104,13 +107,13 @@ The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 ```
 
 Where $\mathbf{R}$ is the rotation matrix:
-
+```math
 $\displaystyle \mathbf{R} = \begin{bmatrix}
 \cos(\theta_x) & \cos(\theta_y) & \cos(\theta_z) \\\
 \cos(\phi_x) & \cos(\phi_y) & \cos(\phi_z) \\\
 \cos(\psi_x) & \cos(\psi_y) & \cos(\psi_z)
 \end{bmatrix}$
-
+```
 Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local element axes and the global coordinate axes.
 
 ### 4. Assembly of Global Matrices
