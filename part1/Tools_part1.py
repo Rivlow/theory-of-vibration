@@ -80,11 +80,13 @@ def display(fig, ax, activation, nodes_list, elems_list, geom_data, save):
         ax.set_ylim([min(y_node) - 1, max(y_node) + 1])
         ax.set_zlim([min(z_node) - 1, max(z_node) + 1])
 
+        ax.set_facecolor('none') # transparent background
+
         ax.legend(loc="best")
-        ax.grid(True)
+        ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
 
         if save:
-            plt.savefig('part1/Pictures/structure.png')
+            plt.savefig('part1/Pictures/structure.png', transparent=True, bbox_inches='tight', pad_inches=0)
             plt.savefig('part1/Pictures/structure.PDF')
 
 
@@ -125,7 +127,7 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped, sav
         else:
             norm_disp = 0
         color = color_map(norm_disp)
-        
+
         ax.plot(x, y, z, color=color, linewidth=2)
     
     # Add a color bar
@@ -133,8 +135,11 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped, sav
     sm.set_array([])
     fig.colorbar(sm, ax=ax, label='Displacement [m]')
 
+    ax.set_facecolor('none')
+    ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+
     if save:
-        plt.savefig('part1/Pictures/mode_shape.png')
+        plt.savefig('part1/Pictures/mode_shape.png', transparent=True, bbox_inches='tight', pad_inches=0)
         plt.savefig('part1/Pictures/mode_shape.PDF')
 
 
