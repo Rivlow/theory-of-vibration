@@ -40,17 +40,17 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
 The local stiffness matrix $\mathbf{K}\_e$ for a beam element is given by:
 
 $\displaystyle \mathbf{K}\_e = \begin{bmatrix}
-\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\
-0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} & 0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} \\
-0 & 0 & \frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 & 0 & 0 & -\frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 \\
-0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 \\
-0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 \\
-0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} \\
--\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & \frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\
-0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} & 0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} \\
-0 & 0 & -\frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 & 0 & 0 & \frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 \\
-0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 \\
-0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 \\
+\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\\
+0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} & 0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} \\\
+0 & 0 & \frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 & 0 & 0 & -\frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 \\\
+0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 \\\
+0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 \\\
+0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} \\\
+-\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & \frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\\
+0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} & 0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} \\\
+0 & 0 & -\frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 & 0 & 0 & \frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 \\\
+0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 \\\
+0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 \\\
 0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l}
 \end{bmatrix}$
 
@@ -67,17 +67,17 @@ Where:
 The local mass matrix $\mathbf{M}\_e$ for a beam element is given by:
 
 $\displaystyle \mathbf{M}\_e = \frac{\rho Al}{420} \begin{bmatrix}
-140 & 0 & 0 & 0 & 0 & 0 & 70 & 0 & 0 & 0 & 0 & 0 \\
-0 & 156 & 0 & 0 & 0 & 22l & 0 & 54 & 0 & 0 & 0 & -13l \\
-0 & 0 & 156 & 0 & -22l & 0 & 0 & 0 & 54 & 0 & 13l & 0 \\
-0 & 0 & 0 & 140r^2 & 0 & 0 & 0 & 0 & 0 & 70r^2 & 0 & 0 \\
-0 & 0 & -22l & 0 & 4l^2 & 0 & 0 & 0 & -13l & 0 & -3l^2 & 0 \\
-0 & 22l & 0 & 0 & 0 & 4l^2 & 0 & 13l & 0 & 0 & 0 & -3l^2 \\
-70 & 0 & 0 & 0 & 0 & 0 & 140 & 0 & 0 & 0 & 0 & 0 \\
-0 & 54 & 0 & 0 & 0 & 13l & 0 & 156 & 0 & 0 & 0 & -22l \\
-0 & 0 & 54 & 0 & -13l & 0 & 0 & 0 & 156 & 0 & 22l & 0 \\
-0 & 0 & 0 & 70r^2 & 0 & 0 & 0 & 0 & 0 & 140r^2 & 0 & 0 \\
-0 & 0 & 13l & 0 & -3l^2 & 0 & 0 & 0 & 22l & 0 & 4l^2 & 0 \\
+140 & 0 & 0 & 0 & 0 & 0 & 70 & 0 & 0 & 0 & 0 & 0 \\\
+0 & 156 & 0 & 0 & 0 & 22l & 0 & 54 & 0 & 0 & 0 & -13l \\\
+0 & 0 & 156 & 0 & -22l & 0 & 0 & 0 & 54 & 0 & 13l & 0 \\\
+0 & 0 & 0 & 140r^2 & 0 & 0 & 0 & 0 & 0 & 70r^2 & 0 & 0 \\\
+0 & 0 & -22l & 0 & 4l^2 & 0 & 0 & 0 & -13l & 0 & -3l^2 & 0 \\\
+0 & 22l & 0 & 0 & 0 & 4l^2 & 0 & 13l & 0 & 0 & 0 & -3l^2 \\\
+70 & 0 & 0 & 0 & 0 & 0 & 140 & 0 & 0 & 0 & 0 & 0 \\\
+0 & 54 & 0 & 0 & 0 & 13l & 0 & 156 & 0 & 0 & 0 & -22l \\\
+0 & 0 & 54 & 0 & -13l & 0 & 0 & 0 & 156 & 0 & 22l & 0 \\\
+0 & 0 & 0 & 70r^2 & 0 & 0 & 0 & 0 & 0 & 140r^2 & 0 & 0 \\\
+0 & 0 & 13l & 0 & -3l^2 & 0 & 0 & 0 & 22l & 0 & 4l^2 & 0 \\\
 0 & -13l & 0 & 0 & 0 & -3l^2 & 0 & -22l & 0 & 0 & 0 & 4l^2
 \end{bmatrix}$
 
@@ -95,17 +95,17 @@ $\displaystyle \mathbf{M}\_{e\_g} = \mathbf{T}^T \mathbf{M}\_e \mathbf{T}$
 The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 
 $\displaystyle \mathbf{T} = \begin{bmatrix}
-\mathbf{R} & \mathbf{0} & \mathbf{0} & \mathbf{0} \\
-\mathbf{0} & \mathbf{R} & \mathbf{0} & \mathbf{0} \\
-\mathbf{0} & \mathbf{0} & \mathbf{R} & \mathbf{0} \\
+\mathbf{R} & \mathbf{0} & \mathbf{0} & \mathbf{0} \\\
+\mathbf{0} & \mathbf{R} & \mathbf{0} & \mathbf{0} \\\
+\mathbf{0} & \mathbf{0} & \mathbf{R} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{R}
 \end{bmatrix}$
 
 Where $\mathbf{R}$ is the rotation matrix:
 
 $\displaystyle \mathbf{R} = \begin{bmatrix}
-\cos(\theta_x) & \cos(\theta_y) & \cos(\theta_z) \\
-\cos(\phi_x) & \cos(\phi_y) & \cos(\phi_z) \\
+\cos(\theta_x) & \cos(\theta_y) & \cos(\theta_z) \\\
+\cos(\phi_x) & \cos(\phi_y) & \cos(\phi_z) \\\
 \cos(\psi_x) & \cos(\psi_y) & \cos(\psi_z)
 \end{bmatrix}$
 
@@ -116,7 +116,7 @@ Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local elemen
 The global stiffness and mass matrices are assembled by summing the contributions from each element:
 
 $\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
-$\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
+and $\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
 
 Where $n\_e$ is the total number of elements in the structure.
 
