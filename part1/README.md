@@ -17,7 +17,6 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
    - Solving the eigenvalue problem to obtain natural frequencies and mode shapes
 
 4. **Visualization**
-   - Representation of clamped nodes and lumped masses
    - Visualization of mode shapes with a color scale based on displacement amplitude
    ![mode](Pictures/mode_shape.png)
 
@@ -132,5 +131,3 @@ The natural frequencies and mode shapes are obtained by solving the eigenvalue p
 $\displaystyle (\mathbf{K} - \omega^2 \mathbf{M}) \mathbf{\phi} = \mathbf{0}$
 
 Where $\omega$ are the natural frequencies and $\mathbf{\phi}$ are the corresponding mode shapes.
-
-This formulation provides the foundation for the 3D structural finite element analysis, allowing for the computation of modal properties and the study of structural dynamics.
