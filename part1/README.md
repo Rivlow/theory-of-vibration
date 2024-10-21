@@ -94,12 +94,14 @@ $\displaystyle \mathbf{M}\_{e\_g} = \mathbf{T}^T \mathbf{M}\_e \mathbf{T}$
 
 The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 
-$\displaystyle \mathbf{T} = \begin{bmatrix}
+```math
+\mathbf{T} = \begin{bmatrix}
 \mathbf{R} & \mathbf{0} & \mathbf{0} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{R} & \mathbf{0} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{0} & \mathbf{R} & \mathbf{0} \\\
 \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{R}
 \end{bmatrix}$
+```
 
 Where $\mathbf{R}$ is the rotation matrix:
 
@@ -115,8 +117,8 @@ Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local elemen
 
 The global stiffness and mass matrices are assembled by summing the contributions from each element:
 
-$\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
-and $\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
+- $\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
+- $\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
 
 Where $n\_e$ is the total number of elements in the structure.
 
