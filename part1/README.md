@@ -37,21 +37,21 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
 
 ### 1. Local Stiffness Matrix
 
-The local stiffness matrix $\mathbf{K}_e$ for a beam element is given by:
+The local stiffness matrix $\mathbf{K}\_e$ for a beam element is given by:
 
-$\displaystyle \mathbf{K}_e = \begin{bmatrix}
+$\displaystyle \mathbf{K}\_e = \begin{bmatrix}
 \frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\
-0 & \frac{12EI_z}{l^3} & 0 & 0 & 0 & \frac{6EI_z}{l^2} & 0 & -\frac{12EI_z}{l^3} & 0 & 0 & 0 & \frac{6EI_z}{l^2} \\
-0 & 0 & \frac{12EI_y}{l^3} & 0 & -\frac{6EI_y}{l^2} & 0 & 0 & 0 & -\frac{12EI_y}{l^3} & 0 & -\frac{6EI_y}{l^2} & 0 \\
-0 & 0 & 0 & \frac{GJ_x}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{GJ_x}{l} & 0 & 0 \\
-0 & 0 & -\frac{6EI_y}{l^2} & 0 & \frac{4EI_y}{l} & 0 & 0 & 0 & \frac{6EI_y}{l^2} & 0 & \frac{2EI_y}{l} & 0 \\
-0 & \frac{6EI_z}{l^2} & 0 & 0 & 0 & \frac{4EI_z}{l} & 0 & -\frac{6EI_z}{l^2} & 0 & 0 & 0 & \frac{2EI_z}{l} \\
+0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} & 0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & \frac{6EI\_z}{l^2} \\
+0 & 0 & \frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 & 0 & 0 & -\frac{12EI\_y}{l^3} & 0 & -\frac{6EI\_y}{l^2} & 0 \\
+0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 \\
+0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 \\
+0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} \\
 -\frac{EA}{l} & 0 & 0 & 0 & 0 & 0 & \frac{EA}{l} & 0 & 0 & 0 & 0 & 0 \\
-0 & -\frac{12EI_z}{l^3} & 0 & 0 & 0 & -\frac{6EI_z}{l^2} & 0 & \frac{12EI_z}{l^3} & 0 & 0 & 0 & -\frac{6EI_z}{l^2} \\
-0 & 0 & -\frac{12EI_y}{l^3} & 0 & \frac{6EI_y}{l^2} & 0 & 0 & 0 & \frac{12EI_y}{l^3} & 0 & \frac{6EI_y}{l^2} & 0 \\
-0 & 0 & 0 & -\frac{GJ_x}{l} & 0 & 0 & 0 & 0 & 0 & \frac{GJ_x}{l} & 0 & 0 \\
-0 & 0 & -\frac{6EI_y}{l^2} & 0 & \frac{2EI_y}{l} & 0 & 0 & 0 & \frac{6EI_y}{l^2} & 0 & \frac{4EI_y}{l} & 0 \\
-0 & \frac{6EI_z}{l^2} & 0 & 0 & 0 & \frac{2EI_z}{l} & 0 & -\frac{6EI_z}{l^2} & 0 & 0 & 0 & \frac{4EI_z}{l}
+0 & -\frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} & 0 & \frac{12EI\_z}{l^3} & 0 & 0 & 0 & -\frac{6EI\_z}{l^2} \\
+0 & 0 & -\frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 & 0 & 0 & \frac{12EI\_y}{l^3} & 0 & \frac{6EI\_y}{l^2} & 0 \\
+0 & 0 & 0 & -\frac{GJ\_x}{l} & 0 & 0 & 0 & 0 & 0 & \frac{GJ\_x}{l} & 0 & 0 \\
+0 & 0 & -\frac{6EI\_y}{l^2} & 0 & \frac{2EI\_y}{l} & 0 & 0 & 0 & \frac{6EI\_y}{l^2} & 0 & \frac{4EI\_y}{l} & 0 \\
+0 & \frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{2EI\_z}{l} & 0 & -\frac{6EI\_z}{l^2} & 0 & 0 & 0 & \frac{4EI\_z}{l}
 \end{bmatrix}$
 
 Where:
@@ -59,14 +59,14 @@ Where:
 - $G$: Shear modulus
 - $A$: Cross-sectional area
 - $l$: Length of the element
-- $I_y, I_z$: Second moments of area
-- $J_x$: Torsional constant
+- $I\_y, I\_z$: Second moments of area
+- $J\_x$: Torsional constant
 
 ### 2. Local Mass Matrix
 
-The local mass matrix $\mathbf{M}_e$ for a beam element is given by:
+The local mass matrix $\mathbf{M}\_e$ for a beam element is given by:
 
-$\displaystyle \mathbf{M}_e = \frac{\rho Al}{420} \begin{bmatrix}
+$\displaystyle \mathbf{M}\_e = \frac{\rho Al}{420} \begin{bmatrix}
 140 & 0 & 0 & 0 & 0 & 0 & 70 & 0 & 0 & 0 & 0 & 0 \\
 0 & 156 & 0 & 0 & 0 & 22l & 0 & 54 & 0 & 0 & 0 & -13l \\
 0 & 0 & 156 & 0 & -22l & 0 & 0 & 0 & 54 & 0 & 13l & 0 \\
@@ -89,8 +89,8 @@ Where:
 
 To transform the local matrices to global coordinates, we use a transformation matrix $\mathbf{T}$:
 
-$\displaystyle \mathbf{K}_{e_g} = \mathbf{T}^T \mathbf{K}_e \mathbf{T}$
-$\displaystyle \mathbf{M}_{e_g} = \mathbf{T}^T \mathbf{M}_e \mathbf{T}$
+$\displaystyle \mathbf{K}\_{e\_g} = \mathbf{T}^T \mathbf{K}\_e \mathbf{T}$
+$\displaystyle \mathbf{M}\_{e\_g} = \mathbf{T}^T \mathbf{M}\_e \mathbf{T}$
 
 The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 
@@ -115,10 +115,10 @@ Here, $\theta$, $\phi$, and $\psi$ represent the angles between the local elemen
 
 The global stiffness and mass matrices are assembled by summing the contributions from each element:
 
-$\displaystyle \mathbf{K} = \sum_{e=1}^{n_e} \mathbf{K}_{e_g}$
-$\displaystyle \mathbf{M} = \sum_{e=1}^{n_e} \mathbf{M}_{e_g}$
+$\displaystyle \mathbf{K} = \sum\_{e=1}^{n\_e} \mathbf{K}\_{e\_g}$
+$\displaystyle \mathbf{M} = \sum\_{e=1}^{n\_e} \mathbf{M}\_{e\_g}$
 
-Where $n_e$ is the total number of elements in the structure.
+Where $n\_e$ is the total number of elements in the structure.
 
 ### 5. Eigenvalue Problem
 
