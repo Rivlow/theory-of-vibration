@@ -15,11 +15,11 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
    - Capability to increase the number of elements per beam for improved accuracy
 
 
-4. **Visualization**
+3. **Visualization**
    - Visualization of mode shapes with a color scale based on displacement amplitude
    ![mode](Pictures/mode_shape.png)
 
-5. **Convergence Study**
+4. **Convergence Study**
    - Functionality to study the convergence of results based on the number of elements
    ![convergence](Pictures/convergence_part1.png)
 
