@@ -9,10 +9,7 @@ This project implements a comprehensive Finite Element Analysis (FEM) of three-d
 3. [Finite Element Code](#finite-element-code)
 4. [Transient Response Analysis](#transient-response-analysis)
 5. [Model Reduction Methods](#model-reduction-methods)
-6. [Installation](#installation)
-7. [Usage](#usage)
-8. [Contributing](#contributing)
-9. [License](#license)
+
 
 ## Key Features
 
