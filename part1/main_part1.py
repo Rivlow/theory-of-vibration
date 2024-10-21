@@ -14,7 +14,7 @@ def main():
     activation = {"print":True, "plot":True}
 
     geom_data, phys_data = setParams()
-    elem_per_beam = 5
+    elem_per_beam = 1
 
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -36,10 +36,8 @@ def main():
     fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
     ax = fig.add_subplot(projection='3d')
     
-    #display(fig, ax, activation, nodes_list, elems_list, geom_data, save=True)
-    plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True)
-    ax.set_facecolor('none')
-    ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+    display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=True)
+    #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True, github=True)
     plt.show()
 
 if __name__  == "__main__":
