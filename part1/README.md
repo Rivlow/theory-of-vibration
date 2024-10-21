@@ -108,7 +108,7 @@ The transformation matrix $\mathbf{T}$ is constructed using direction cosines:
 
 Where $\mathbf{R}$ is the rotation matrix:
 ```math
-$\displaystyle \mathbf{R} = \begin{bmatrix}
+\mathbf{R} = \begin{bmatrix}
 \cos(\theta_x) & \cos(\theta_y) & \cos(\theta_z) \\\
 \cos(\phi_x) & \cos(\phi_y) & \cos(\phi_z) \\\
 \cos(\psi_x) & \cos(\psi_y) & \cos(\psi_z)
