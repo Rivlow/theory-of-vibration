@@ -38,6 +38,7 @@ def main():
     
     display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=True)
     #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True, github=True)
+    
     plt.show()
 
 if __name__  == "__main__":
