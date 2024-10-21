@@ -34,6 +34,7 @@ This section calculates the transient response of the system using various metho
 ### 1. Force Computation (computeForce)
 
 This function calculates the force induced by supporters on excitation nodes. The force is uniformly distributed:
+
 $\displaystyle F(t) = -\frac{A}{n_{nodes}} \sin(\omega t)$
 
 where:
@@ -44,6 +45,7 @@ where:
 ### 2. Impulse Response Calculation (computeH)
 
 This function computes the impulse response for all modes:
+
 $\displaystyle h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t)$
 
 where:
@@ -61,6 +63,7 @@ This function calculates eta (modal displacement), phi (modal force), and mu (mo
 ### 4. Mode Displacement Method (modeDisplacementMethod)
 
 This method calculates displacement using modal superposition:
+
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}\_r$
 
 ![displ](Pictures/mode_displacement_method.png)
