@@ -59,17 +59,40 @@ def etaPhiMu(w_all, x, eps, M, F, t_span, nb_modes):
     return eta, phi, mu
 
 
-def modeDisplacementMethod(eta, x, nb_modes):
+def modeDisplacementMethod(ax, t_span, eta, x, nb_modes, z_dir, save, github):
     """Compute mode displacement method."""
 
     q = np.einsum('rm,dr->dm', eta[:nb_modes], x[:, :nb_modes])
 
-   
+    ax.plot(t_span, q[z_dir,:], label='Mode Displacement Method')
+
+
+    if github:
+        ax.set_facecolor('none')
+        ax.figure.patch.set_alpha(0)
+        ax.set_xlabel('time t [s]', color='white')
+        ax.set_ylabel('displacement q [m]', color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        legend = ax.get_legend()
+        if legend:
+            for text in legend.get_texts():
+                text.set_color("white")
+
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/mode_displacement_method.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/mode_displacement_method.pdf')
+
     return q
 
 
 
-def modeAccelerationMethod(eta, w_all, x, t_span, K, phi, F, nb_modes):
+def modeAccelerationMethod(ax, t_span, eta, w_all, x, K, phi, F, nb_modes, z_dir, save, github):
     """Compute mode acceleration method."""
    
     q_acc = np.zeros((x.shape[0], len(t_span)))
@@ -82,13 +105,60 @@ def modeAccelerationMethod(eta, w_all, x, t_span, K, phi, F, nb_modes):
     q_acc = np.einsum('rm,dr->dm', eta[:nb_modes], x[:, :nb_modes]) + KF
     q_acc -= np.einsum('rm,r,dr->dm', phi[:nb_modes], w_sq_inv, x[:, :nb_modes])
 
-   
+    ax.plot(t_span, q_acc[z_dir,:], label='Mode Acceleration Method')
+
+    if github:
+        ax.set_facecolor('none')
+        ax.figure.patch.set_alpha(0)
+        ax.set_xlabel('time t [s]', color='white')
+        ax.set_ylabel('displacement q [m]', color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        legend = ax.get_legend()
+        if legend:
+            for text in legend.get_texts():
+                text.set_color("white")
+
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/mode_acceleration_method.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/mode_acceleration_method.pdf')
+
     return q_acc
 
-def mNorm(eta, mu, nb_modes):
-    return np.sum(np.power(eta[:nb_modes], 2) * mu[:nb_modes, np.newaxis], axis=0)
+def mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save, github):
+    m_norm = np.sum(np.power(eta[:nb_modes], 2) * mu[:nb_modes, np.newaxis], axis=0)
+    
+    ax.plot(t_span, m_norm, label='M-Norm')
+    
+    if github:
+        ax.set_facecolor('none')
+        ax.figure.patch.set_alpha(0)
+        ax.set_xlabel('time t [s]', color='white')
+        ax.set_ylabel('M norm [?]', color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        legend = ax.get_legend()
+        if legend:
+            for text in legend.get_texts():
+                text.set_color("white")
 
-def convergence(eta, modes, frequencies, K, phi, F, t_span, nb_modes, z_dir):
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/m_norm.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/m_norm.pdf')
+    
+    return m_norm
+
+def convergence(eta, modes, frequencies, K, phi, F, t_span, nb_modes, z_dir, save, github):
     q_full, q_acc_full = [], []
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
@@ -112,7 +182,28 @@ def convergence(eta, modes, frequencies, K, phi, F, t_span, nb_modes, z_dir):
     ax2.legend()
     ax2.grid(True)
     
+    if github:
+        for ax in [ax1, ax2]:
+            ax.set_facecolor('none')
+            ax.tick_params(axis='x', colors='white')
+            ax.tick_params(axis='y', colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            legend = ax.get_legend()
+            if legend:
+                for text in legend.get_texts():
+                    text.set_color("white")
+        fig.patch.set_alpha(0)
+
     plt.tight_layout()
+    
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/convergence.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/convergence.pdf')
+    
     plt.show()
     
     return q_full, q_acc_full

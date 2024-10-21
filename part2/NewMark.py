@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.fft import fft, fftfreq
 
-def NewmarkIntegration(M, C, K, x0, v0, t_span, F,
-                                 gamma, beta):
+def NewmarkIntegration(ax, M, C, K, x0, v0, t_span, F, gamma, beta, z_dir, save, github):
     n = len(x0)
     nt = len(t_span)
     h = t_span[1] - t_span[0]
@@ -28,7 +27,6 @@ def NewmarkIntegration(M, C, K, x0, v0, t_span, F,
     S = (M + gamma_h*C + beta_h2*K).tocsc()
     S_inv = inv(S)
 
-
     for i in range(1, nt):
         v_pred = v[:, i-1] + one_minus_gamma_h * a[:, i-1]
         x_pred = x[:, i-1] + h * v[:, i-1] + half_minus_beta_h2 * a[:, i-1]
@@ -38,6 +36,29 @@ def NewmarkIntegration(M, C, K, x0, v0, t_span, F,
         a[:, i] = da
         v[:, i] = v_pred + gamma_h * da
         x[:, i] = x_pred + beta_h2 * da
+
+    ax.plot(t_span, x[z_dir,:], label='Newmark Integration')
+
+    if github:
+        ax.set_facecolor('none')
+        ax.figure.patch.set_alpha(0)
+        ax.set_xlabel('time t [s]', color='white')
+        ax.set_ylabel('displacement q [m]', color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        legend = ax.get_legend()
+        if legend:
+            for text in legend.get_texts():
+                text.set_color("white")
+
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/newmark_integration.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/newmark_integration.pdf')
 
     return x, v, a
 
@@ -50,47 +71,36 @@ def analysisTransient(q, t_span):
     transition_time = t_span[transition_index]
     print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")
 
-def analysisFFT(x, t_span):
-    # Calcul de la FFT
+def FFTNewmark(ax, x, t_span, save, github):
     N = len(t_span)
     T = t_span[1] - t_span[0]  # période d'échantillonnage
     yf = fft(x)
     xf = fftfreq(N, T)[:N//2]  # fréquences positives uniquement
     amplitude = 2.0/N * np.abs(yf[0:N//2])
+    
+    fig, ax = plt.subplots()
+    ax.plot(xf, amplitude)
+    
+    ax.set_xlabel('Fréquence')
+    ax.set_ylabel('Amplitude')
+    ax.set_title('FFT de la solution Newmark')
+    
+    if github:
+        ax.set_facecolor('none')
+        fig.patch.set_alpha(0)
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+    
+    if save:
+        if github:
+            plt.savefig('part2/Pictures/fft_newmark.png', transparent=True, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig('part2/Pictures/fft_newmark.pdf')
+    
 
-    plt.figure()
-    plt.plot(xf, amplitude)
-    plt.show()
-
-    """
-    # Calcul de l'amplitude du spectre
-    amplitude = 2.0/N * np.abs(yf[0:N//2])
-
-    # Création du graphique 3D
-    fig = plt.figure(figsize=(12, 8))
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Création d'une grille pour le graphique 3D
-    X, Y = np.meshgrid(t_span, xf)
-    Z = np.zeros_like(X)
-
-    Z = amplitude[:, np.newaxis] * np.sin(2 * np.pi * xf[:, np.newaxis] * t_span)
-
-    # Tracé de la surface 3D
-    surf = ax.plot_surface(X, Y, Z, cmap='viridis', linewidth=0, antialiased=False)
-
-    # Configuration des axes et du titre
-    ax.set_xlabel('Temps')
-    ax.set_ylabel('Fréquence (Hz)')
-    ax.set_zlabel('Amplitude')
-    ax.set_title('Analyse FFT - Représentation 3D')
-
-    # Ajout d'une barre de couleur
-    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
-
-    plt.show()
-
-        """
     # Retour des résultats de la FFT pour une utilisation ultérieure si nécessaire
     return xf, amplitude
 

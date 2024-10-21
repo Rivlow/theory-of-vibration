@@ -9,11 +9,9 @@ sys.path.append(parent_dir)
 
 from part1 import FEM, set_parameters
 from damping import *
-from NewMark import *
+from Newmark import *
 from mode_method import *
 from Tools_part2 import *
-
-
 
 
 def main():
@@ -35,7 +33,7 @@ def main():
 
     K, M = solver.extractMatrices()
     frequencies, modes = solver.solve()
-    modes = normalize_eigenvectors(modes, M) # sparse.linalg.eig does not normalize
+    modes = normalize_eigenvectors(modes, M) # sparse.linalg.eigh does not normalize
 
     #=============================#
     # Part 2 : transient response #
@@ -52,7 +50,7 @@ def main():
 
     period = 1/2 # f = 2 [hz] <-> T = 1/2 [s]
     nb_timestep = 1000
-    n = 1
+    n = 100
     t_span = np.linspace(0.1, n*period, n*nb_timestep)
 
     F = computeForce(params, 
@@ -66,24 +64,30 @@ def main():
     DOF_2 = extractDOF(nodes_obs[1], nodes_clamped)
     z_dir = DOF_1+2
 
-    
+    fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
+    ax = fig.add_subplot()
+
     eta, phi, mu  = etaPhiMu(2*pi*frequencies, modes, epsilon, M, F, t_span, nb_modes)
-    q = modeDisplacementMethod(eta, modes, nb_modes)
-    q_acc = modeAccelerationMethod(eta, 2*pi*frequencies, modes, t_span, K, phi, F, nb_modes)
-    M_norm = mNorm(eta, mu, nb_modes)
-    analysisTransient(q, t_span)
-    #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, nb_modes, z_dir)
-    
+    #q = modeDisplacementMethod(ax, t_span, eta, modes, nb_modes, z_dir, save=True, github=True)
+    #q_acc = modeAccelerationMethod(ax, t_span, eta, 2*pi*frequencies, modes, K, phi, F, nb_modes, z_dir, save=True, github=True)
+    #M_norm = mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save=True, github=True)
+
     #-------------------------------#
     # NewMark integration algorithm #
     #-------------------------------#
     x0 = v0 = np.zeros_like(modes[:,0]) # initial conditions
-    q_nm, q_dot_nm, q_dot_dot_nm = NewmarkIntegration(M, C, K, 
-                                                      x0, v0, t_span, F,
-                                                      0.5, 0.25)
     
-    analysisFFT(q_nm[z_dir,:], t_span) # FFT analysis
-    #plotAll(t_span, q[z_dir,:], q_nm[z_dir,:], separate=False)
+    q_nm, q_dot_nm, q_dot_dot_nm = NewmarkIntegration(ax, M, C, K, 
+                                                      x0, v0, t_span, F,
+                                                      0.5, 0.25, z_dir, save=True, github=True)
+
+    
+    #analysisTransient(q, t_span) # find time at which transient -> steady state
+    #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, nb_modes, z_dir)
+    #FFTNewmark(q_nm[z_dir,:], t_span) 
+
+    
+    plt.show()
     
     
     

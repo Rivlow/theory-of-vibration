@@ -74,14 +74,18 @@ Equation:
 
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}\_r$
 
+![displ](Pictures/mode_displacement_method.png)
+
 ### 5. Mode Acceleration Method (modeAccelerationMethod)
 
 This method calculates displacement using the mode acceleration method.
 
 Equation:
 
-
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n\_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}\_r + \mathbf{K}^{-1}\mathbf{F}(t)$
+![acc](Pictures/mode_acceleration_method.png)
+
+### 6. Newmark integration (NewmarkIntegration)
 
 This function implements the Newmark integration algorithm to solve the equation of motion.
 
@@ -91,3 +95,5 @@ Main equations:
 - $\displaystyle \mathbf{x}\_{i+1} = \mathbf{x}\_i + h\mathbf{v}\_i + [(0.5-\beta)h^2]\mathbf{a}\_i + \beta h^2 \mathbf{a}\_{i+1}$
 
 where $\gamma$ and $\beta$ are parameters of the Newmark algorithm.
+
+![nm](Pictures/newmark_integration.png)
