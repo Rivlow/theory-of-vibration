@@ -9,12 +9,11 @@ This part of the project focuses on the eigenvalue problem $\displaystyle \det(\
    - Support for various boundary conditions (clamped nodes)
    - Addition of lumped masses on specific nodes
 
-2. **Adaptive Meshing**
-   - Capability to increase the number of elements per beam for improved accuracy
-
-3. **Modal Analysis**
+2. **FEM computation**
    - Computation of global mass and stiffness matrices
    - Solving the eigenvalue problem to obtain natural frequencies and mode shapes
+   - Capability to increase the number of elements per beam for improved accuracy
+
 
 4. **Visualization**
    - Visualization of mode shapes with a color scale based on displacement amplitude

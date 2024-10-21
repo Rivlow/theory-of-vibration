@@ -49,7 +49,7 @@ This function computes the impulse response for all modes:
 $\displaystyle h(t) = \frac{1}{\omega_d} e^{-\epsilon \omega_r t} \sin(\omega_d t)$
 
 where:
-- $\displaystyle \omega_d$: damped frequency
+- $\displaystyle \omega_d$ : damped frequency
 - $\displaystyle \omega_r$: natural frequency
 - $\displaystyle \epsilon$: damping ratio
 
@@ -70,7 +70,7 @@ $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n_{modes}} \eta_r(t) \mathbf{x}\_r$
 
 ### 5. Mode Acceleration Method (modeAccelerationMethod)
 
-This method calculates displacement using the mode acceleration method:
+This method calculates displacement using the mode acceleration approximation:
 
 $\displaystyle \mathbf{q}(t) = \sum\_{r=1}^{n\_{modes}} \left(\eta_r(t) -\frac{\phi_r(t)}{\omega_r^2}\right)\mathbf{x}\_r + \mathbf{K}^{-1}\mathbf{F}(t)$
 ![acc](Pictures/mode_acceleration_method.png)
