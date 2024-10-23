@@ -1,15 +1,16 @@
-# 3D Structure Finite Element Analysis
 
-This project implements a comprehensive Finite Element Analysis (FEM) of three-dimensional structures using Python. It provides a robust framework for modeling, analyzing, and simulating complex structural systems.
 
 ## Table of Contents
 
+1. [Synopsis](#Synopsis)
 1. [Key Features](#key-features)
 2. [Structure Modeling](#structure-modeling)
 3. [Finite Element Code](#finite-element-code)
 4. [Transient Response Analysis](#transient-response-analysis)
 5. [Model Reduction Methods](#model-reduction-methods)
 
+## Synopsis
+In the framework of the Uliege course [MECA0029-1][https://www.programmes.uliege.be/cocoon/20242025/en/cours/MECA0029-1.html], it has been asked to implements a comprehensive Finite Element Analysis (FEM) of three-dimensional structures using Python. It provides a robust framework for modeling, analyzing, and simulating complex structural systems.
 
 ## Key Features
 
@@ -57,3 +58,6 @@ Implement advanced reduction techniques:
 ```bash
 git clone https://github.com/Rivlow/theory-of-vibration.git
 ```
+
+## Acknowledgements
+I would like to thank Camille and Louise who helped me a lot during this project !
