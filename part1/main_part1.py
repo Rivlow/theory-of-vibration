@@ -7,7 +7,6 @@ pi = np.pi
 from FEM import *
 from Tools_part1 import *
 from set_parameters import *
-from convergence_part1 import *
 
 def main():
 
@@ -15,7 +14,7 @@ def main():
     activation = {"print":True, "plot":True}
 
     geom_data, phys_data = setParams()
-    elem_per_beam = 1
+    elem_per_beam = 10
 
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -38,7 +37,7 @@ def main():
     ax = fig.add_subplot(projection='3d')
     #display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=True)
     #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True, github=True)
-    plt.show()
+    #plt.show()
 
     convergence(geom_data, phys_data, max_nb_elem=8, plot=True, github=True)
 

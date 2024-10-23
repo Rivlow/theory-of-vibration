@@ -49,10 +49,10 @@ def display(fig, ax, nodes_list, elems_list, geom_data, save, github):
             else:
                 ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="red", s=20, depthshade=True)
         else:
-            ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="blue", s=20, depthshade=True)
+            ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="black", s=20, depthshade=True)
 
     # Annotate nodes with their index
-    text_color = 'white' if github else 'black'
+    text_color = 'cyan' if github else 'black'
     for i, (x_val, y_val, z_val) in enumerate(zip(x_node, y_node, z_node)):
         ax.text(x_val, y_val, z_val, f'{i}', fontsize=9, ha='center', color=text_color)
 
@@ -63,10 +63,10 @@ def display(fig, ax, nodes_list, elems_list, geom_data, save, github):
         x = [nodes_list[idx_in].pos[0], nodes_list[idx_out].pos[0]]
         y = [nodes_list[idx_in].pos[1], nodes_list[idx_out].pos[1]]
         z = [nodes_list[idx_in].pos[2], nodes_list[idx_out].pos[2]]
-        ax.plot(x, y, z, color="blue", linewidth=1.5, alpha=0.5)
+        ax.plot(x, y, z, color="black", linewidth=1.5, alpha=0.5)
 
     # Set plot labels and adjust for GitHub if needed
-    label_color = 'white' if github else 'black'
+    label_color = 'cyan' if github else 'black'
     ax.set_xlabel("X-axis", fontsize=12, color=label_color)
     ax.set_ylabel("Y-axis", fontsize=12, color=label_color)
     ax.set_zlabel("Z-axis", fontsize=12, color=label_color)
@@ -86,14 +86,14 @@ def display(fig, ax, nodes_list, elems_list, geom_data, save, github):
 
     # Adjust tick colors for GitHub
     if github:
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.tick_params(axis='z', colors='white')
+        ax.tick_params(axis='x', colors='cyan')
+        ax.tick_params(axis='y', colors='cyan')
+        ax.tick_params(axis='z', colors='cyan')
         
-        # Change legend text color to white
+        # Change legend text color to cyan
         legend = ax.get_legend()
         for text in legend.get_texts():
-            text.set_color("white")
+            text.set_color("cyan")
 
     if save:
         if github:
@@ -155,19 +155,19 @@ def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped, sav
     # Adjust grid
     ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
     
-    # Set labels, ticks, and colorbar to white only if github is True
+    # Set labels, ticks, and colorbar to cyan only if github is True
     if github:
-        ax.set_xlabel('X [m]', color='white')
-        ax.set_ylabel('Y [m]', color='white')
-        ax.set_zlabel('Z [m]', color='white')
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.tick_params(axis='z', colors='white')
+        ax.set_xlabel('X [m]', color='cyan')
+        ax.set_ylabel('Y [m]', color='cyan')
+        ax.set_zlabel('Z [m]', color='cyan')
+        ax.tick_params(axis='x', colors='cyan')
+        ax.tick_params(axis='y', colors='cyan')
+        ax.tick_params(axis='z', colors='cyan')
         
-        cbar.ax.yaxis.set_tick_params(color='white')
-        cbar.outline.set_edgecolor('white')
-        plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='white')
-        cbar.set_label('Displacement [m]', color='white')
+        cbar.ax.yaxis.set_tick_params(color='cyan')
+        cbar.outline.set_edgecolor('cyan')
+        plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='cyan')
+        cbar.set_label('Displacement [m]', color='cyan')
     else:
         ax.set_xlabel('X [m]')
         ax.set_ylabel('Y [m]')
