@@ -20,7 +20,7 @@ def main():
     # Part 1 : compute K, M, eigen values/modes #
     #===========================================#
     geom_data, phys_data = set_parameters.setParams()
-    elem_per_beam = 1
+    elem_per_beam = 3
 
     nodes_list_init, nodes_pairs_init = FEM.initializeGeometry(geom_data, phys_data)
     nodes_list, nodes_pairs = FEM.addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam-1)
@@ -42,7 +42,7 @@ def main():
     nb_modes = 6
 
     nodes_force = [23, 24]
-    nodes_obs = [10, 11]
+    nodes_obs = [23, 11]
     nodes_clamped = [0, 1, 6, 7, 12, 13]
 
     a, b, C = dampingMatrix(K, M, 2*pi*frequencies[0], 2*pi*frequencies[1])
@@ -50,8 +50,8 @@ def main():
 
     period = 1/2 # f = 2 [hz] <-> T = 1/2 [s]
     nb_timestep = 1000
-    n = 100
-    t_span = np.linspace(0.1, n*period, n*nb_timestep)
+    n = 20
+    t_span = np.linspace(0, n*period, n*nb_timestep)
 
     F = computeForce(params, 
                      nodes_clamped, nodes_force, 2,
@@ -60,7 +60,7 @@ def main():
     #---------------------------------------#
     # Mode displacement/acceleration method #
     #---------------------------------------#
-    DOF_1 = extractDOF(nodes_obs[1], nodes_clamped)
+    DOF_1 = extractDOF(nodes_obs[0], nodes_clamped)
     DOF_2 = extractDOF(nodes_obs[1], nodes_clamped)
     z_dir = DOF_1+2
 
@@ -68,8 +68,12 @@ def main():
     ax = fig.add_subplot()
 
     eta, phi, mu  = etaPhiMu(2*pi*frequencies, modes, epsilon, M, F, t_span, nb_modes)
-    #q = modeDisplacementMethod(ax, t_span, eta, modes, nb_modes, z_dir, save=True, github=True)
-    #q_acc = modeAccelerationMethod(ax, t_span, eta, 2*pi*frequencies, modes, K, phi, F, nb_modes, z_dir, save=True, github=True)
+
+
+    print(mu)
+
+    q = modeDisplacementMethod(ax, t_span, eta, modes, nb_modes, z_dir, save=True, github=True)
+    q_acc = modeAccelerationMethod(ax, t_span, eta, 2*pi*frequencies, modes, K, phi, F, nb_modes, z_dir, save=True, github=True)
     #M_norm = mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save=True, github=True)
 
     #-------------------------------#
@@ -85,6 +89,10 @@ def main():
     #analysisTransient(q, t_span) # find time at which transient -> steady state
     #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, nb_modes, z_dir)
     #FFTNewmark(q_nm[z_dir,:], t_span) 
+
+    ax.set_xlabel('time t [s]', color='black')
+    ax.set_ylabel('displacement q [m]', color='black')
+    plt.legend(loc = 'best')
 
     
     plt.show()

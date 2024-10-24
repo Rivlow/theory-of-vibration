@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.fft import fft, fftfreq
 
 def NewmarkIntegration(ax, M, C, K, x0, v0, t_span, F, gamma, beta, z_dir, save, github):
+    
     n = len(x0)
     nt = len(t_span)
     h = t_span[1] - t_span[0]
@@ -30,12 +31,11 @@ def NewmarkIntegration(ax, M, C, K, x0, v0, t_span, F, gamma, beta, z_dir, save,
     for i in range(1, nt):
         v_pred = v[:, i-1] + one_minus_gamma_h * a[:, i-1]
         x_pred = x[:, i-1] + h * v[:, i-1] + half_minus_beta_h2 * a[:, i-1]
+        a_pred = S_inv @ (F[:,i] - C @ v_pred - K @ x_pred)
 
-        da = S_inv @ (F[:,i] - C @ v_pred - K @ x_pred)
-
-        a[:, i] = da
-        v[:, i] = v_pred + gamma_h * da
-        x[:, i] = x_pred + beta_h2 * da
+        a[:, i] = a_pred
+        v[:, i] = v_pred + gamma_h * a_pred
+        x[:, i] = x_pred + beta_h2 * a_pred
 
     ax.plot(t_span, x[z_dir,:], label='Newmark Integration')
 
@@ -44,11 +44,11 @@ def NewmarkIntegration(ax, M, C, K, x0, v0, t_span, F, gamma, beta, z_dir, save,
         ax.figure.patch.set_alpha(0)
         ax.set_xlabel('time t [s]', color='white')
         ax.set_ylabel('displacement q [m]', color='white')
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        ax.title.set_color('white')
+        #ax.tick_params(axis='x', colors='white')
+        #ax.tick_params(axis='y', colors='white')
+        #ax.xaxis.label.set_color('white')
+        #ax.yaxis.label.set_color('white')
+        #ax.title.set_color('white')
         legend = ax.get_legend()
         if legend:
             for text in legend.get_texts():

@@ -25,12 +25,14 @@ def computeForce(params,
 
     sin_wt = np.sin(w * t_span)
     F = np.zeros((len(modes), len(t_span)))
-    
+    Ampl = -A/len(nodes_force)    
+
     # Distribute force F on each nodes_force
     for idx in nodes_force:
         DOF = extractDOF(idx, nodes_clamped)
-        F[DOF + xyz] = -(A/len(nodes_force)) * sin_wt
-
+        F[DOF + xyz, :] = Ampl * sin_wt[:]
+    
+    plt.plot(F[104, :])
 
     return F
 
@@ -45,8 +47,8 @@ def etaPhiMu(w_all, x, eps, M, F, t_span, nb_modes):
     """Compute eta and phi using vectorized operations and convolution."""
     
     w_d = w_all[:nb_modes] * np.sqrt(1 - eps[:nb_modes]**2)
-    mu = np.sum(x[:, :nb_modes] * (M @ x[:, :nb_modes]), axis=0)
-    
+    mu = np.sum(x[:, :nb_modes]* (M @ x[:, :nb_modes]), axis=0)
+
     F_proj = np.sum(x[:, :nb_modes].T[:, :, np.newaxis] * F, axis=1) / mu[:, np.newaxis]
     
     h = computeH(w_d, w_all[:nb_modes], eps[:nb_modes], t_span)
@@ -70,17 +72,17 @@ def modeDisplacementMethod(ax, t_span, eta, x, nb_modes, z_dir, save, github):
     if github:
         ax.set_facecolor('none')
         ax.figure.patch.set_alpha(0)
-        ax.set_xlabel('time t [s]', color='white')
-        ax.set_ylabel('displacement q [m]', color='white')
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        ax.title.set_color('white')
+        ax.set_xlabel('time t [s]', color='cyan')
+        ax.set_ylabel('displacement q [m]', color='cyan')
+        #ax.tick_params(axis='x', colors='cyan')
+        #ax.tick_params(axis='y', colors='cyan')
+        #ax.xaxis.label.set_color('cyan')
+        #ax.yaxis.label.set_color('cyan')
+        ax.title.set_color('cyan')
         legend = ax.get_legend()
         if legend:
             for text in legend.get_texts():
-                text.set_color("white")
+                text.set_color("cyan")
 
     if save:
         if github:
@@ -110,17 +112,17 @@ def modeAccelerationMethod(ax, t_span, eta, w_all, x, K, phi, F, nb_modes, z_dir
     if github:
         ax.set_facecolor('none')
         ax.figure.patch.set_alpha(0)
-        ax.set_xlabel('time t [s]', color='white')
-        ax.set_ylabel('displacement q [m]', color='white')
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        ax.title.set_color('white')
+        #ax.set_xlabel('time t [s]', color='cyan')
+        #ax.set_ylabel('displacement q [m]', color='cyan')
+        #ax.tick_params(axis='x', colors='cyan')
+        #ax.tick_params(axis='y', colors='cyan')
+        ax.xaxis.label.set_color('cyan')
+        ax.yaxis.label.set_color('cyan')
+        ax.title.set_color('cyan')
         legend = ax.get_legend()
         if legend:
             for text in legend.get_texts():
-                text.set_color("white")
+                text.set_color("cyan")
 
     if save:
         if github:
@@ -138,17 +140,17 @@ def mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save, github):
     if github:
         ax.set_facecolor('none')
         ax.figure.patch.set_alpha(0)
-        ax.set_xlabel('time t [s]', color='white')
-        ax.set_ylabel('M norm [?]', color='white')
-        ax.tick_params(axis='x', colors='white')
-        ax.tick_params(axis='y', colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        ax.title.set_color('white')
+        ax.set_xlabel('time t [s]', color='cyan')
+        ax.set_ylabel('M norm [?]', color='cyan')
+        ax.tick_params(axis='x', colors='cyan')
+        ax.tick_params(axis='y', colors='cyan')
+        ax.xaxis.label.set_color('cyan')
+        ax.yaxis.label.set_color('cyan')
+        ax.title.set_color('cyan')
         legend = ax.get_legend()
         if legend:
             for text in legend.get_texts():
-                text.set_color("white")
+                text.set_color("cyan")
 
     if save:
         if github:
@@ -185,15 +187,15 @@ def convergence(eta, modes, frequencies, K, phi, F, t_span, nb_modes, z_dir, sav
     if github:
         for ax in [ax1, ax2]:
             ax.set_facecolor('none')
-            ax.tick_params(axis='x', colors='white')
-            ax.tick_params(axis='y', colors='white')
-            ax.xaxis.label.set_color('white')
-            ax.yaxis.label.set_color('white')
-            ax.title.set_color('white')
+            ax.tick_params(axis='x', colors='cyan')
+            ax.tick_params(axis='y', colors='cyan')
+            ax.xaxis.label.set_color('cyan')
+            ax.yaxis.label.set_color('cyan')
+            ax.title.set_color('cyan')
             legend = ax.get_legend()
             if legend:
                 for text in legend.get_texts():
-                    text.set_color("white")
+                    text.set_color("cyan")
         fig.patch.set_alpha(0)
 
     plt.tight_layout()
