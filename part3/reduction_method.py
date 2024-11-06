@@ -6,6 +6,8 @@ import sys
 from scipy.sparse import linalg as splinalg
 import scipy as sp
 from scipy.sparse import linalg
+from scipy.sparse import csr_matrix, hstack, vstack, eye
+from scipy.sparse.linalg import spsolve
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,43 +17,48 @@ sys.path.append(parent_dir)
 from part1 import FEM, set_parameters
 from Tools_part3 import *
 
+def partition_matrices(K, M, retained_dofs):
+
+    n = K.shape[0]
+    condensed_dofs = np.array(sorted(list(set(range(n)) - set(retained_dofs))))
+    retained_dofs = np.array(sorted(retained_dofs))
+    
+    K_CC = K[np.ix_(condensed_dofs, condensed_dofs)] 
+    K_CR = K[np.ix_(condensed_dofs, retained_dofs)]   
+    K_RC = K[np.ix_(retained_dofs, condensed_dofs)]   
+    K_RR = K[np.ix_(retained_dofs, retained_dofs)]   
+    
+    M_CC = M[np.ix_(condensed_dofs, condensed_dofs)]
+    M_CR = M[np.ix_(condensed_dofs, retained_dofs)]
+    M_RC = M[np.ix_(retained_dofs, condensed_dofs)]
+    M_RR = M[np.ix_(retained_dofs, retained_dofs)]
+    
+    return (K_CC, K_CR, K_RC, K_RR), (M_CC, M_CR, M_RC, M_RR), condensed_dofs, retained_dofs
 
 def GuyanIronsReduction(K, M, retained_dofs):
-    n = K.shape[0]
-    all_dofs = np.arange(n)
-    condensed_dofs = np.setdiff1d(all_dofs, retained_dofs)
+
+    K_parts, M_parts, condensed_dofs, retained_dofs = partition_matrices(K, M, retained_dofs)
+    K_CC, K_CR, K_RC, K_RR = K_parts
+    M_CC, M_CR, M_RC, M_RR = M_parts
+
+    K_CC_inv = sp.sparse.linalg.inv(K_CC.tocsc())    
+    phi_s = -K_CC_inv @ K_CR
     
-    # Réorganiser les matrices
-    perm = np.concatenate((retained_dofs, condensed_dofs))
-    Kpp = K[np.ix_(perm, perm)]
-    Mpp = M[np.ix_(perm, perm)]
+    n_r = len(retained_dofs)
+    I = eye(n_r, format='csr')
+    R = vstack([I, csr_matrix(phi_s)])
     
-    nr = len(retained_dofs)
-    Krr = Kpp[:nr, :nr]
-    Krc = Kpp[:nr, nr:]
-    Kcr = Kpp[nr:, :nr]
-    Kcc = Kpp[nr:, nr:]
+    K_red = (R.T @ K @ R).tocsr()
+    M_red = (R.T @ M @ R).tocsr()
     
-    Mrr = Mpp[:nr, :nr]
-    Mrc = Mpp[:nr, nr:]
-    Mcr = Mpp[nr:, :nr]
-    Mcc = Mpp[nr:, nr:]
+    eigen_values, eigen_vectors = eigsh(K_red, k=6, M=M_red, sigma=0, which='LM')
+    frequencies = np.sqrt(np.abs(eigen_values)) / (2 * np.pi)
+    idx = np.argsort(frequencies)
+    frequencies = frequencies[idx]
+    eigen_vectors = eigen_vectors[:, idx]
+    
+    return frequencies, eigen_vectors
 
-    A = -sp.sparse.linalg.inv(Kcc.tocsc()) @ Kcr
-    I = sparse.eye(len(retained_dofs))
-    R = sparse.bmat([[I], [A]])
-
-    K_reduced = R.T @ K @ R
-    M_reduced = R.T @ M @ R
-
-    eigen_values, eigen_vectors = sp.sparse.linalg.eigsh(K_reduced, k=6, M=M_reduced, sigma=0, which='LM')
-
-    # Sorting (by increasing values)
-    eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
-    order = np.argsort(eigen_values)
-    sorted_eigen_vectors = eigen_vectors.real[:, order]
-
-    return eigen_values, sorted_eigen_vectors
 
 def CraigBamptonReduction(K, M, retained_dofs, n_modes):
 

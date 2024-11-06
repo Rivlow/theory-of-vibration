@@ -8,7 +8,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from part1 import FEM, set_parameters
-from part2 import NewMark, Tools_part2
+from part2 import Newmark, Tools_part2
 from reduction_method import *
 from Tools_part3 import *
 
@@ -40,18 +40,24 @@ def main():
     nodes_force = [23, 24]
     nodes_observation = [10, 11]
     nodes_clamped = [0, 1, 6, 7, 12, 13]
-    nodes_retained = [23, 24, 10, 29, 30]
+    nodes_retained = [10, 23, 24, 29, 30]
     node_dof_config = {nodes_retained[0]: ["u", "v", "w"],
                        nodes_retained[1]: ["u", "v", "w"],
                        nodes_retained[2]: ["u", "v", "w"],
                        nodes_retained[3]: ["u", "v", "w"],
                        nodes_retained[4]: ["u", "v", "w"]}
     
+    
     retained_dofs = retainedDOF(nodes_retained, node_dof_config, nodes_clamped)
     freq_gi, modes_gi = GuyanIronsReduction(K, M, retained_dofs)
-    freq_cb, modes_cb = CraigBamptonReduction(K, M, retained_dofs, n_modes=4)
 
-    print(np.abs(freq_init-freq_gi))
+    print("True frequencies:")
+    print(freq_init)
+
+    print("\nfrequencies by guyan irons")
+    print(freq_gi)
+    #freq_cb, modes_cb = CraigBamptonReduction(K, M, retained_dofs, n_modes=4)
+    #print(np.abs(freq_init-freq_gi))
     
 
 
