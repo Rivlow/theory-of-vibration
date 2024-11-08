@@ -41,8 +41,8 @@ def main():
     params = {"m_tot":9*80, "h":0.2, "g":9.81, "dt":0.1, "freq":2}
     nb_modes = 6
 
-    nodes_force = [23, 24]
-    nodes_obs = [23, 11]
+    nodes_force = [10, 11]
+    nodes_obs = [10, 23]
     nodes_clamped = [0, 1, 6, 7, 12, 13]
 
     a, b, C = dampingMatrix(K, M, 2*pi*frequencies[0], 2*pi*frequencies[1])
@@ -69,9 +69,6 @@ def main():
 
     eta, phi, mu  = etaPhiMu(2*pi*frequencies, modes, epsilon, M, F, t_span, nb_modes)
 
-
-    print(mu)
-
     q = modeDisplacementMethod(ax, t_span, eta, modes, nb_modes, z_dir, save=True, github=True)
     q_acc = modeAccelerationMethod(ax, t_span, eta, 2*pi*frequencies, modes, K, phi, F, nb_modes, z_dir, save=True, github=True)
     #M_norm = mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save=True, github=True)
@@ -90,6 +87,7 @@ def main():
     #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, nb_modes, z_dir)
     #FFTNewmark(q_nm[z_dir,:], t_span) 
 
+    plt.plot(t_span,q[z_dir,:])
     ax.set_xlabel('time t [s]', color='black')
     ax.set_ylabel('displacement q [m]', color='black')
     plt.legend(loc = 'best')

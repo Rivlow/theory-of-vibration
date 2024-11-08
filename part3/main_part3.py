@@ -47,17 +47,26 @@ def main():
                        nodes_retained[3]: ["u", "v", "w"],
                        nodes_retained[4]: ["u", "v", "w"]}
     
-    
-    retained_dofs = retainedDOF(nodes_retained, node_dof_config, nodes_clamped)
-    freq_gi, modes_gi = GuyanIronsReduction(K, M, retained_dofs)
 
+
+    # Separate K,M w.r.t. condensed/retained dofs
+    retained_dofs = retainedDOF(nodes_retained, node_dof_config, nodes_clamped)
+    print(retained_dofs)
+
+    K_parts, M_parts, condensed_dofs, retained_dofs = partition_matrices(K, M, retained_dofs)
+
+    freq_gi, modes_gi = GuyanIronsReduction(K_parts, M_parts, condensed_dofs, retained_dofs)
+    freq_cb, modes_cb = CraigBamptonReduction(K_parts, M_parts, condensed_dofs,n_modes=4)
+    
     print("True frequencies:")
     print(freq_init)
 
-    print("\nfrequencies by guyan irons")
+    print("\nfrequencies by Guyan Irons:")
     print(freq_gi)
-    #freq_cb, modes_cb = CraigBamptonReduction(K, M, retained_dofs, n_modes=4)
-    #print(np.abs(freq_init-freq_gi))
+
+    print("\nfrequencies by Craig Bampton:")
+    print(freq_cb)
+    
     
 
 
