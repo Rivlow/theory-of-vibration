@@ -1,20 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import os
-pi = np.pi
 
-from FEM import *
-from Tools_part1 import *
-from set_parameters import *
+from part1.FEM import *
+from part1.Tools_part1 import *
+from part1.get_params_part1 import setParams as setParams1
 
 def main():
 
-    # Dictionnary to monitor outputs of the code
-    activation = {"print":True, "plot":True}
-
-    geom_data, phys_data = setParams()
+    geom_data, phys_data = setParams1()
     elem_per_beam = 1
+    n_modes=  8
 
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -30,13 +25,15 @@ def main():
     solver.removeClampedNodes(nodes_list, geom_data["nodes_clamped"])
 
     K, M = solver.extractMatrices()
-    eigen_vals, eigen_vectors = solver.solve()
+    eigen_vals, eigen_vectors = solver.solve(n_modes)
+
+
 
     # Display
     fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
     ax = fig.add_subplot(projection='3d')
-    display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=True)
-    #plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True, github=True)
+    #display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=True)
+    plotModes(fig, ax, nodes_list, eigen_vectors[:,1], elems_list, geom_data["nodes_clamped"], save=True, github=True)
     plt.show()
 
     #convergence(geom_data, phys_data, max_nb_elem=8, plot=True, github=True)

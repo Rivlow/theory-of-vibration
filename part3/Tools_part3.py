@@ -1,13 +1,12 @@
-import numpy as np
 import os
 import sys
-from scipy import sparse
 
+# Configuration des chemins
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from part2 import Tools_part2
+from part2.Tools_part2 import extractDOF
 
 
 dof_map = {"u": 0,
@@ -23,8 +22,21 @@ def retainedDOF(nodes_retained, node_dof_config, nodes_clamped):
     retained_dofs = []
 
     for node in nodes_retained:
-        DOF_init = Tools_part2.extractDOF(node, nodes_clamped)
+        DOF_init = extractDOF(node, nodes_clamped)
         for dof in node_dof_config[node]:
             retained_dofs.append(DOF_init + dof_map[dof])
 
     return retained_dofs
+
+def findReducedDOF(node_idx, nodes_retained, node_dof_config):
+
+    if node_idx not in nodes_retained:
+        return None
+        
+    position = 0
+    for node in nodes_retained:
+        if node == node_idx:
+            return position
+        position += len(node_dof_config[node])
+    return None
+

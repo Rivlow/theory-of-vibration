@@ -68,16 +68,11 @@ class Solver:
         return self.K, self.M
 
   
-    def solve(self):
+    def solve(self, n_modes):
         # Solve system using sparse eigenvalue solver
-        eigen_values, eigen_vectors = sp.sparse.linalg.eigsh(self.K, k=6, M=self.M, sigma=0, which='LM')
-
-        # Sorting (by increasing values)
-        eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
-        order = np.argsort(eigen_values)
-        sorted_eigen_vectors = eigen_vectors.real[:, order]
-
-        return eigen_values, sorted_eigen_vectors
+        eigen_values, eigen_vectors = sp.sparse.linalg.eigsh(self.K, k=n_modes, M=self.M, sigma=0, which='LM')
+        
+        return np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi), eigen_vectors
 
 
 
@@ -118,10 +113,10 @@ class Element:
             pos_1.append(nodes_list[self.nodes[0]].pos[i])
             pos_2.append(nodes_list[self.nodes[1]].pos[i])
         
-        # third (not aligned) point
-        pos_3 = [2. + pos_2[0], 3.487 + pos_2[1], -4.562 + pos_2[2]] 
+        # Third (not aligned) point
+        pos_3 = [2.26 + pos_2[0], 1.657 + pos_2[1], -2.551 + pos_2[2]] 
 
-        # Check that third point is not aligned
+        # Check third point not aligned
         if collinearPoints(pos_1, pos_2, pos_3):
             pos_3 = adjustPosition(pos_1, pos_2, pos_3, epsilon=0.01)
 

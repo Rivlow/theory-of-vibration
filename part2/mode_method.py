@@ -1,38 +1,42 @@
 import numpy as np
-from scipy.sparse.linalg import inv
-import scipy as sp
 import matplotlib.pyplot as plt
-pi = np.pi
+import scipy as sp
+from scipy.sparse.linalg import inv
+import os
+import sys
 
-from Tools_part2 import *
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from .Tools_part2 import extractDOF
 
 
-def computeForce(params, 
-                 nodes_clamped, nodes_force, xyz,
+def computeForce(sim_data, 
+                 geom_data, xyz,
                  modes, 
                  t_span):
-    """ Compute induced force by the supporters on excitation nodes [23, 24]"""
-    h = params['h']
-    m_tot = params['m_tot']
-    delta_t = params['dt']
-    freq = params['freq']
-    g = params['g']
+    """ Compute induced force by the supporters on excitation nodes """
+
+    h = sim_data['h']
+    m_tot = sim_data['m_tot']
+    delta_t = sim_data['dt']
+    freq = sim_data['freq']
+    g = sim_data['g']
 
     v = np.sqrt(2 * g * h)
     momentum = m_tot * v
     A = 0.8 * (momentum / delta_t)
-    w = 2 * pi * freq
+    w = 2 * np.pi * freq
 
     sin_wt = np.sin(w * t_span)
     F = np.zeros((len(modes), len(t_span)))
-    Ampl = -A/len(nodes_force)    
+    Ampl = -A/len(sim_data["nodes_force"])    
 
     # Distribute force F on each nodes_force
-    for idx in nodes_force:
-        DOF = extractDOF(idx, nodes_clamped)
+    for idx in sim_data["nodes_force"]:
+        DOF = extractDOF(idx, geom_data["nodes_clamped"])
         F[DOF + xyz, :] = Ampl * sin_wt[:]
-    
-    plt.plot(F[104, :])
 
     return F
 
@@ -43,129 +47,54 @@ def computeH(w_d, w_r, eps_r, t_span):
     return (1 / w_d[:, np.newaxis]) * np.exp(-eps_r[:, np.newaxis] * w_r[:, np.newaxis] * t_matrix) * np.sin(w_d[:, np.newaxis] * t_matrix)
 
 # Main computation functions
-def etaPhiMu(w_all, x, eps, M, F, t_span, nb_modes):
+def etaPhiMu(w_all, x, eps, M, F, t_span, n_modes):
     """Compute eta and phi using vectorized operations and convolution."""
     
-    w_d = w_all[:nb_modes] * np.sqrt(1 - eps[:nb_modes]**2)
-    mu = np.sum(x[:, :nb_modes]* (M @ x[:, :nb_modes]), axis=0)
+    w_d = w_all[:n_modes] * np.sqrt(1 - eps[:n_modes]**2)
+    mu = np.sum(x[:, :n_modes]* (M @ x[:, :n_modes]), axis=0)
 
-    F_proj = np.sum(x[:, :nb_modes].T[:, :, np.newaxis] * F, axis=1) / mu[:, np.newaxis]
+    F_proj = np.sum(x[:, :n_modes].T[:, :, np.newaxis] * F, axis=1) / mu[:, np.newaxis]
     
-    h = computeH(w_d, w_all[:nb_modes], eps[:nb_modes], t_span)
+    h = computeH(w_d, w_all[:n_modes], eps[:n_modes], t_span)
     phi = F_proj
     
     dt = t_span[1] - t_span[0]
     eta = np.array([sp.signal.convolve(F_proj[r], h[r], mode='full')[:len(t_span)] * dt 
-                    for r in range(nb_modes)])
+                    for r in range(n_modes)])
     
     return eta, phi, mu
 
 
-def modeDisplacementMethod(ax, t_span, eta, x, nb_modes, z_dir, save, github):
+def modeDisplacementMethod(eta, x, n_modes):
     """Compute mode displacement method."""
-
-    q = np.einsum('rm,dr->dm', eta[:nb_modes], x[:, :nb_modes])
-
-    ax.plot(t_span, q[z_dir,:], label='Mode Displacement Method')
+    return np.einsum('rm,dr->dm', eta[:n_modes], x[:, :n_modes])
 
 
-    if github:
-        ax.set_facecolor('none')
-        ax.figure.patch.set_alpha(0)
-        ax.set_xlabel('time t [s]', color='cyan')
-        ax.set_ylabel('displacement q [m]', color='cyan')
-        #ax.tick_params(axis='x', colors='cyan')
-        #ax.tick_params(axis='y', colors='cyan')
-        #ax.xaxis.label.set_color('cyan')
-        #ax.yaxis.label.set_color('cyan')
-        ax.title.set_color('cyan')
-        legend = ax.get_legend()
-        if legend:
-            for text in legend.get_texts():
-                text.set_color("cyan")
-
-    if save:
-        if github:
-            plt.savefig('part2/Pictures/mode_displacement_method.png', transparent=True, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.savefig('part2/Pictures/mode_displacement_method.pdf')
-
-    return q
-
-
-
-def modeAccelerationMethod(ax, t_span, eta, w_all, x, K, phi, F, nb_modes, z_dir, save, github):
+def modeAccelerationMethod(t_span, eta, w_all, x, K, phi, F, n_modes):
     """Compute mode acceleration method."""
    
     q_acc = np.zeros((x.shape[0], len(t_span)))
     
     K_inv = inv(K.tocsc())
-    w_sq_inv = 1 / (w_all[:nb_modes]**2)
+    w_sq_inv = 1 / (w_all[:n_modes]**2)
 
     KF = K_inv @ F
         
-    q_acc = np.einsum('rm,dr->dm', eta[:nb_modes], x[:, :nb_modes]) + KF
-    q_acc -= np.einsum('rm,r,dr->dm', phi[:nb_modes], w_sq_inv, x[:, :nb_modes])
-
-    ax.plot(t_span, q_acc[z_dir,:], label='Mode Acceleration Method')
-
-    if github:
-        ax.set_facecolor('none')
-        ax.figure.patch.set_alpha(0)
-        #ax.set_xlabel('time t [s]', color='cyan')
-        #ax.set_ylabel('displacement q [m]', color='cyan')
-        #ax.tick_params(axis='x', colors='cyan')
-        #ax.tick_params(axis='y', colors='cyan')
-        ax.xaxis.label.set_color('cyan')
-        ax.yaxis.label.set_color('cyan')
-        ax.title.set_color('cyan')
-        legend = ax.get_legend()
-        if legend:
-            for text in legend.get_texts():
-                text.set_color("cyan")
-
-    if save:
-        if github:
-            plt.savefig('part2/Pictures/mode_acceleration_method.png', transparent=True, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.savefig('part2/Pictures/mode_acceleration_method.pdf')
+    q_acc = np.einsum('rm,dr->dm', eta[:n_modes], x[:, :n_modes]) + KF
+    q_acc -= np.einsum('rm,r,dr->dm', phi[:n_modes], w_sq_inv, x[:, :n_modes])
 
     return q_acc
 
-def mNorm(ax, t_span, eta, mu, nb_modes, z_dir, save, github):
-    m_norm = np.sum(np.power(eta[:nb_modes], 2) * mu[:nb_modes, np.newaxis], axis=0)
+def mNorm(eta, mu, n_modes):
+    return np.sum(np.power(eta[:n_modes], 2) * mu[:n_modes, np.newaxis], axis=0)
     
-    ax.plot(t_span, m_norm, label='M-Norm')
-    
-    if github:
-        ax.set_facecolor('none')
-        ax.figure.patch.set_alpha(0)
-        ax.set_xlabel('time t [s]', color='cyan')
-        ax.set_ylabel('M norm [?]', color='cyan')
-        ax.tick_params(axis='x', colors='cyan')
-        ax.tick_params(axis='y', colors='cyan')
-        ax.xaxis.label.set_color('cyan')
-        ax.yaxis.label.set_color('cyan')
-        ax.title.set_color('cyan')
-        legend = ax.get_legend()
-        if legend:
-            for text in legend.get_texts():
-                text.set_color("cyan")
 
-    if save:
-        if github:
-            plt.savefig('part2/Pictures/m_norm.png', transparent=True, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.savefig('part2/Pictures/m_norm.pdf')
-    
-    return m_norm
-
-def convergence(eta, modes, frequencies, K, phi, F, t_span, nb_modes, z_dir, save, github):
+def convergence(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, save, github):
     q_full, q_acc_full = [], []
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     
-    for i, span_mode in enumerate(range(nb_modes)):
+    for i, span_mode in enumerate(range(n_modes)):
         q_full.append(modeDisplacementMethod(eta, modes, span_mode))
         q_acc_full.append(modeAccelerationMethod(eta, 2*np.pi*frequencies, modes, t_span, K, phi, F, span_mode))
         

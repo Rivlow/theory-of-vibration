@@ -1,0 +1,69 @@
+# Part 1 parameters
+geometry:
+  dimensions:
+    z:
+      min: 1  # [m]
+      mid: 3  # [m]
+      max: 5  # [m]
+    x:
+      min: 0  # [m]
+      mid: 4  # [m]
+      max: 8  # [m]
+    y:
+      min: 0  # [m]
+      max: 2  # [m]
+  
+  beam:
+    diameter: 0.150  # [m]
+    thickness: 0.005  # [m]
+
+  nodes:
+    clamped: [0, 1, 6, 7, 12, 13]
+    lumped_positions: [4, 5, 21, 22, 23, 24, 25, 26, 10, 11, 27, 28, 29, 30, 31, 32, 14, 15]
+
+physics:
+  material:
+    rho: 7800  # [kg/m^3]
+    nu: 0.3    # [-]
+    E: 210.0e9 # [Pa]
+
+  mass:
+    weight_per_person: 80  # [kg]
+    number_of_people: 51
+    number_of_nodes: 18
+
+# Part 2 parameters
+transient:
+  time:
+    dt: 0.1  # Time step [s]
+    period: 0.5  # Period (T = 1/f) [s]
+    num_periods: 20  # Number of periods to simulate
+    steps_per_period: 100  # Number of time steps per period
+  
+  excitation:
+    frequency: 2  # [Hz]
+    height: 0.2  # Drop height [m]
+    gravity: 9.81  # [m/s^2]
+  
+  nodes:
+    force_application: [10, 11]  # Nodes where force is applied
+    observation: [10, 23]  # Nodes to observe
+
+  damping:
+    mode1_ratio: 0.005  # First mode damping ratio [-]
+    mode2_ratio: 0.005  # Second mode damping ratio [-]
+
+  newmark:
+    gamma: 0.5  # Newmark integration parameter
+    beta: 0.25  # Newmark integration parameter
+
+# Part 3 parameters
+reduction:
+  nodes:
+    retained: [10, 23, 24, 29, 30]  # Nodes to retain in reduced model
+    dof_config:  # Degrees of freedom to retain for each node
+      10: ["u", "v", "w"]
+      23: ["u", "v", "w"]
+      24: ["u", "v", "w"]
+      29: ["u", "v", "w"]
+      30: ["u", "v", "w"]
