@@ -27,8 +27,6 @@ def main():
     K, M = solver.extractMatrices()
     eigen_vals, eigen_vectors = solver.solve(n_modes)
 
-
-
     # Display
     fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
     ax = fig.add_subplot(projection='3d')
