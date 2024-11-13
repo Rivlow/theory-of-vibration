@@ -31,6 +31,7 @@ physics:
     weight_per_person: 80  # [kg]
     number_of_people: 51
     number_of_nodes: 18
+    number_of_jumping_people: 9
 
 # Part 2 parameters
 transient:
@@ -46,7 +47,7 @@ transient:
     gravity: 9.81  # [m/s^2]
   
   nodes:
-    force_application: [10, 11]  # Nodes where force is applied
+    force_application: [23, 24]  # Nodes where force is applied
     observation: [10, 23]  # Nodes to observe
 
   damping:

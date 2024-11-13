@@ -44,6 +44,10 @@ def analysisTransient(q, t_span):
 
     analytic_signal = hilbert(q)
     amplitude_envelope = np.abs(analytic_signal)
+
+    if len(amplitude_envelope) != len(t_span):
+        print(f"Warning: tailles différentes - amplitude_envelope: {len(amplitude_envelope)}, t_span: {len(t_span)}")
+    
     transition_index = np.argmin(np.abs(np.gradient(amplitude_envelope, t_span)))
     transition_time = t_span[transition_index]
     print(f"State transition (transient -> steady) around t = {transition_time:.2f} s")

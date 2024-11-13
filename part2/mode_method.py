@@ -11,6 +11,23 @@ sys.path.append(parent_dir)
 
 from .Tools_part2 import extractDOF
 
+SMALL_SIZE = 8
+MEDIUM_SIZE = 18
+BIGGER_SIZE = 18
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+plt.rc('ytick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+plt.rc('legend', fontsize=MEDIUM_SIZE)   # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+
+def isLatex(latex):
+    if latex:
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='lmodern')     
+
 
 def computeForce(sim_data, 
                  geom_data, xyz,
@@ -88,54 +105,83 @@ def modeAccelerationMethod(t_span, eta, w_all, x, K, phi, F, n_modes):
 def mNorm(eta, mu, n_modes):
     return np.sum(np.power(eta[:n_modes], 2) * mu[:n_modes, np.newaxis], axis=0)
     
+def convergenceMax(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, save, latex):
 
-def convergence(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, save, github):
+    q_full, q_acc_full = [], []
+    fig, ax = plt.subplots(1, 1, figsize=(15, 6))
+    isLatex(latex)
+    
+    for i, span_mode in enumerate(range(1, n_modes)):
+        q = modeDisplacementMethod(eta, modes, span_mode)[z_dir,:]
+        q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, span_mode)[z_dir,:]
+        q_full.append(np.max(q))
+        q_acc_full.append(np.max(q_acc))
+    
+  
+    q_ref = q_full[-1]  
+    q_acc_ref = q_acc_full[-1] 
+    
+    err_cumul_q = [np.abs(q - q_ref)/np.abs(q_ref) * 100 for q in q_full]
+    err_cumul_acc = [np.abs(q - q_acc_ref)/np.abs(q_acc_ref) * 100 for q in q_acc_full]
+
+   
+    ax.scatter(range(1, len(err_cumul_q)-1), err_cumul_q[:-2], label="displacement method")
+    ax.scatter(range(1, len(err_cumul_acc)-1), err_cumul_acc[:-2], label="acceleration method")
+    ax.plot(range(1, len(err_cumul_q)-1), err_cumul_q[:-2], ls="--")
+    ax.plot(range(1, len(err_cumul_acc)-1), err_cumul_acc[:-2], ls="--")
+    
+    
+    ax.set_yscale('log') 
+    ax.set_xticks(range(0, n_modes))
+    ax.set_xlabel('Number of modes n[-]')
+    ax.set_ylabel('Relative error [%]')
+    ax.grid(True, which="both", ls="-", alpha=0.2)
+    ax.grid(True, which="major", ls="-", alpha=0.5)
+    ax.legend()
+    
+
+    
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig('part2/Pictures/convergence.pdf')
+    
+    plt.show()
+
+def convergenceShape(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, save, latex):
     q_full, q_acc_full = [], []
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    fig, ax  = plt.subplots(1, 1, figsize=(15, 6))
+    isLatex(latex)
+    nb_modes = [1, 5, 8]
     
-    for i, span_mode in enumerate(range(n_modes)):
-        q_full.append(modeDisplacementMethod(eta, modes, span_mode))
-        q_acc_full.append(modeAccelerationMethod(eta, 2*np.pi*frequencies, modes, t_span, K, phi, F, span_mode))
+    for i, span_mode in enumerate(range(1, n_modes)):
+
+        q = modeDisplacementMethod(eta, modes, span_mode)[z_dir,:]
+        q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, span_mode)[z_dir,:]
+        q_full.append(np.max(q))
+        q_acc_full.append(np.max(q_acc))
+
+   
+
+    var_q = [np.abs(q_full[i+1]-q_full[i])/q_full[i] for i in range(len(q_full)-1)]
+    var_q_acc = [np.abs(q_acc_full[i+1]-q_acc_full[i])/q_acc_full[i] for i in range(len(q_acc_full)-1)]
         
-        ax1.plot(t_span, q_full[i][z_dir,:], label=f'Mode {span_mode}')
-        ax2.plot(t_span, q_acc_full[i][z_dir,:], label=f'Mode {span_mode}')
-    
-    ax1.set_title('Mode Displacement Method')
-    ax1.set_xlabel('Temps')
-    ax1.set_ylabel('Déplacement')
-    ax1.legend()
-    ax1.grid(True)
-    
-    ax2.set_title('Mode Acceleration Method')
-    ax2.set_xlabel('Temps')
-    ax2.set_ylabel('Déplacement')
-    ax2.legend()
-    ax2.grid(True)
-    
-    if github:
-        for ax in [ax1, ax2]:
-            ax.set_facecolor('none')
-            ax.tick_params(axis='x', colors='cyan')
-            ax.tick_params(axis='y', colors='cyan')
-            ax.xaxis.label.set_color('cyan')
-            ax.yaxis.label.set_color('cyan')
-            ax.title.set_color('cyan')
-            legend = ax.get_legend()
-            if legend:
-                for text in legend.get_texts():
-                    text.set_color("cyan")
-        fig.patch.set_alpha(0)
+    ax.scatter(range(1, len(q_full)), var_q, label="displacement method")
+    ax.scatter(range(1, len(q_acc_full)), var_q_acc, label="acceleration method")
+    ax.plot(range(1, len(q_full)), var_q, ls="--")
+    ax.plot(range(1, len(q_acc_full)), var_q_acc, ls="--")
+    ax.set_xticks(range(1, len(q_full)))
+    ax.set_xlabel('Number of modes n[-]')
+    ax.set_ylabel(r'$\frac{max(q_{n+1})-max(q_n)}{max(q_n)}$[%]')
+    ax.legend()
+    ax.grid(True)
 
     plt.tight_layout()
     
     if save:
-        if github:
-            plt.savefig('part2/Pictures/convergence.png', transparent=True, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.savefig('part2/Pictures/convergence.pdf')
+        plt.savefig('part2/Pictures/convergence.pdf')
     
     plt.show()
     
-    return q_full, q_acc_full
 

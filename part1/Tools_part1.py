@@ -5,6 +5,23 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
+def isLatex(latex):
+    if latex:
+        
+        SMALL_SIZE = 8
+        MEDIUM_SIZE = 14
+        BIGGER_SIZE = 18
+        plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+        plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+        plt.rc('ytick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+        plt.rc('legend', fontsize=MEDIUM_SIZE)   # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='lmodern')     
+
+
 
 def printData(nodes_list, elems_list, phys_data, geom_data):
 
@@ -25,7 +42,10 @@ def printData(nodes_list, elems_list, phys_data, geom_data):
     print("\n")
 
 
-def display(fig, ax, nodes_list, elems_list, geom_data, save, github):
+def display(fig, ax, nodes_list, elems_list, geom_data, save, github, latex):
+   
+    isLatex(latex)
+    
     # Nodes display
     x_node = [node.pos[0] for node in nodes_list.values()]
     y_node = [node.pos[1] for node in nodes_list.values()]
@@ -102,83 +122,83 @@ def display(fig, ax, nodes_list, elems_list, geom_data, save, github):
             plt.savefig('part1/Pictures/structure.PDF')
 
 
-def plotModes(fig, ax, nodes_list, displacements, elems_list, nodes_clamped, save, github):
-    # Remove clamped index nodes
-    unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
-    mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
-    mask = mask[::6]
-    
-    coef = 2000 * np.max(np.abs(displacements))
-    
-    # Calculate displacement magnitudes
-    disp_magnitudes = {}
-    for idx, i in enumerate(unclamped_nodes_list):
-        disp = coef * displacements[mask[idx]:mask[idx]+3]
-        nodes_list[i].pos += disp
-        disp_magnitudes[i] = np.linalg.norm(disp)
-    
-    # Create color map
-    color_map = cm.get_cmap('inferno')
-    min_disp = min(disp_magnitudes.values())
-    max_disp = max(disp_magnitudes.values())
-    
-    # Plot elements with color gradient
-    for elem in elems_list:
-        n1 = nodes_list[elem.nodes[0]].idx
-        n2 = nodes_list[elem.nodes[1]].idx
-        x = [nodes_list[n1].pos[0], nodes_list[n2].pos[0]]
-        y = [nodes_list[n1].pos[1], nodes_list[n2].pos[1]]
-        z = [nodes_list[n1].pos[2], nodes_list[n2].pos[2]]
-        
-        # Calculate average displacement for the element
-        avg_disp = (disp_magnitudes.get(n1, 0) + disp_magnitudes.get(n2, 0)) / 2
-        
-        # Normalize displacement and get color
-        if max_disp > min_disp:
-            norm_disp = (avg_disp - min_disp) / (max_disp - min_disp)
-        else:
-            norm_disp = 0
-        color = color_map(norm_disp)
-        
-        ax.plot(x, y, z, color=color, linewidth=2)
-    
-    # Add a color bar
-    sm = plt.cm.ScalarMappable(cmap=color_map, norm=plt.Normalize(vmin=min_disp/coef, vmax=max_disp/coef))
-    sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax, label='Displacement [m]')
-    
-    # Set transparent background only if github is True
-    if github:
-        ax.set_facecolor('none')
-        fig.patch.set_alpha(0)
-    
-    # Adjust grid
-    ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
-    
-    # Set labels, ticks, and colorbar to cyan only if github is True
-    if github:
-        ax.set_xlabel('X [m]', color='cyan')
-        ax.set_ylabel('Y [m]', color='cyan')
-        ax.set_zlabel('Z [m]', color='cyan')
-        ax.tick_params(axis='x', colors='cyan')
-        ax.tick_params(axis='y', colors='cyan')
-        ax.tick_params(axis='z', colors='cyan')
-        
-        cbar.ax.yaxis.set_tick_params(color='cyan')
-        cbar.outline.set_edgecolor('cyan')
-        plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='cyan')
-        cbar.set_label('Displacement [m]', color='cyan')
-    else:
-        ax.set_xlabel('X [m]')
-        ax.set_ylabel('Y [m]')
-        ax.set_zlabel('Z [m]')
+def plotModes(nodes_list, nb_modes, all_modes, elems_list, nodes_clamped, save, github, latex):
+   
+   isLatex(latex)
 
-    if save:
-        if github:
-            plt.savefig('part1/Pictures/mode_shape.png', transparent=True, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.savefig('part1/Pictures/mode_shape.PDF')
-
+   unclamped_nodes_list = [x for x in nodes_list.keys() if x not in nodes_clamped]
+   mask = np.arange(0, 6*len(unclamped_nodes_list), 1)
+   mask = mask[::6]
+   
+   for idx_mode in range(6):
+       fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
+       ax = fig.add_subplot(111, projection='3d')
+       
+       current_nodes = {}
+       for k, n in nodes_list.items():
+           current_nodes[k] = type('Node', (), {
+               'idx': n.idx,
+               'pos': n.pos.copy()
+           })
+       
+       modes = all_modes[:,idx_mode]
+       coef = 2000 * np.max(np.abs(modes))
+       
+       disp_magnitudes = {}
+       for idx, i in enumerate(unclamped_nodes_list):
+           disp = coef * modes[mask[idx]:mask[idx]+3]
+           current_nodes[i].pos += disp
+           disp_magnitudes[i] = np.linalg.norm(disp)
+       
+       color_map = cm.get_cmap('jet')
+       min_disp = min(disp_magnitudes.values())
+       max_disp = max(disp_magnitudes.values())
+       
+       for elem in elems_list:
+           n1 = current_nodes[elem.nodes[0]].idx
+           n2 = current_nodes[elem.nodes[1]].idx
+           x = [current_nodes[n1].pos[0], current_nodes[n2].pos[0]]
+           y = [current_nodes[n1].pos[1], current_nodes[n2].pos[1]]
+           z = [current_nodes[n1].pos[2], current_nodes[n2].pos[2]]
+           
+           avg_disp = (disp_magnitudes.get(n1, 0) + disp_magnitudes.get(n2, 0)) / 2
+           
+           if max_disp > min_disp:
+               norm_disp = (avg_disp - min_disp) / (max_disp - min_disp)
+           else:
+               norm_disp = 0
+           color = color_map(norm_disp)
+           
+           ax.plot(x, y, z, color=color, linewidth=2)
+              
+       if github:
+           ax.set_facecolor('none')
+       
+       ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+       
+       if github:
+           ax.set_xlabel('X [m]', color='cyan')
+           ax.set_ylabel('Y [m]', color='cyan')
+           ax.set_zlabel('Z [m]', color='cyan')
+           ax.tick_params(axis='x', colors='cyan')
+           ax.tick_params(axis='y', colors='cyan')
+           ax.tick_params(axis='z', colors='cyan')
+           ax.title.set_color('cyan')
+       else:
+           ax.set_xlabel('X [m]')
+           ax.set_ylabel('Y [m]')
+           ax.set_zlabel('Z [m]')
+       
+       if github:
+           fig.patch.set_alpha(0)
+       
+       if save:
+           if github:
+               plt.savefig(f'part1/Pictures/mode_shape_{idx_mode + 1}.png', transparent=True, bbox_inches='tight', pad_inches=0)
+           else:
+               plt.savefig(f'part1/Pictures/mode_shape_{idx_mode + 1}.pdf', bbox_inches='tight', pad_inches=0)
+       
+       plt.close(fig)
 
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
+from part1.Tools_part1 import *
 pi = np.pi
 
 
@@ -390,7 +391,9 @@ def createElements(nodes_pairs, nodes_list, geom_data, phys_data):
 
     return elems
 
-def convergence(geom_data, phys_data, max_nb_elem, plot, github):
+def convergence(geom_data, phys_data, n_modes, max_nb_elem, plot, github, latex):
+
+    isLatex(latex)
     elem_per_beam_list = np.arange(1, max_nb_elem+1, 1)
     eigen_freq_matrix = []
 
@@ -407,7 +410,7 @@ def convergence(geom_data, phys_data, max_nb_elem, plot, github):
         solver.addLumpedMass(nodes_list, geom_data["nodes_lumped"])
         solver.removeClampedNodes(nodes_list, geom_data["nodes_clamped"])
         
-        eigen_vals, eigen_vectors = solver.solve()
+        eigen_vals, eigen_vectors = solver.solve(n_modes)
         eigen_freq_matrix.append(eigen_vals)
 
     eigen_freq_matrix = np.array(eigen_freq_matrix)

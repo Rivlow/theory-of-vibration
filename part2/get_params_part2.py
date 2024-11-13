@@ -33,7 +33,7 @@ def setParams():
         "nodes_force": config["transient"]["nodes"]["force_application"],
         "nodes_obs": config["transient"]["nodes"]["observation"],
         "m_tot": (float(config["physics"]["mass"]["weight_per_person"]) * 
-                 float(config["physics"]["mass"]["number_of_people"])),
+                 float(config["physics"]["mass"]["number_of_jumping_people"])),
         "t_span": np.linspace(0, 
                             float(config["transient"]["time"]["num_periods"]) * period,
                             num_timesteps),
