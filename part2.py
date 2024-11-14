@@ -17,8 +17,8 @@ def main():
     #############################################
     # Part 1 : compute K, M, eigen values/modes #
     #############################################
-    elem_per_beam = 3
-    n_modes = 20
+    elem_per_beam = 5
+    n_modes = 10
 
     geom_data, phys_data, sim_data = setParams2()
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -47,11 +47,9 @@ def main():
     #---------------------------------------#
     # Mode displacement/acceleration method #
     #---------------------------------------#
-
-    eta, phi, mu  = etaPhiMu(2*np.pi*frequencies, modes, epsilon, M, F, t_span, n_modes)
-
-    q = modeDisplacementMethod(eta, modes, n_modes)
-    q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, n_modes)
+    #eta, phi, mu  = etaPhiMu(2*np.pi*frequencies, modes, epsilon, M, F, t_span, n_modes)
+    #q = modeDisplacementMethod(eta, modes, n_modes)
+    #q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, n_modes)
     #M_norm = mNorm(eta, mu, n_modes)
     
     #-------------------------------#
@@ -67,19 +65,18 @@ def main():
     DOF_2 = extractDOF(sim_data["nodes_obs"][1], geom_data["nodes_clamped"])
     z_dir = DOF_1 + 2
 
-    convergenceMax(eta, modes, 2*np.pi*frequencies, K, phi, F, t_span, n_modes, z_dir, save=True, latex=True)
+    #convergenceAmplitude(eta, modes, 2*np.pi*frequencies, K, phi, F, t_span, n_modes, z_dir, name="conv_amplitude_lc_2_23", save=True, latex=True)
     #analysisTransient(q_nm[z_dir,:], t_span) # find time at which transient -> steady state
     #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, n_modes, z_dir)
-    '''
+    #plotSingle(t_span, q_nm[z_dir,:], "Time [s]", "Displacement [m]", save=True, name="nm_10_first_load", latex=True)
+    
     xf, amplitude = FFTNewmark(q_nm[z_dir,:], t_span) 
-    plotFFT(xf, amplitude, save=True, name_save="fft_nm_23_first_load", latex=True, 
+    plotFFT(xf, amplitude, save=True, name_save="fft_nm_10_second_load", latex=True, 
             height_ratio=0.000001,     # Plus petit = plus de pics détectés
             prominence_ratio=0.0000001, # Plus petit = plus de pics détectés
             distance=3)     
     #plotSingle(t_span, q_nm[z_dir,:], "Time [s]", "Displacement [m]", save=True, name="nm_23_second_load", latex=True)
-    
-
-    
+    '''
     var_to_plot = [q[z_dir, :], q_acc[z_dir,:]]
     var_name = ['displacement method', 'acceleration method']
     var_ls = ['-', ':']

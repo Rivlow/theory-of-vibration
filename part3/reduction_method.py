@@ -80,7 +80,7 @@ def GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs, F, x0, v0, n_m
     
     return frequencies, eigen_vectors, K_red, M_red, C_red, R, F_red, x0_red, v0_red
 
-def CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, F, x0, v0, n_interface_modes, n_eigen=6):
+def CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, F, x0, v0, n_interface_modes, n_eigen):
 
     K_CC, K_CR, K_RC, K_RR = K_parts
     M_CC, M_CR, M_RC, M_RR = M_parts

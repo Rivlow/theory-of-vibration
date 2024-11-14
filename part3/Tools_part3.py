@@ -195,5 +195,44 @@ def convergenceCB(freq_ref, K_parts, M_parts, C_parts, condensed_dofs, n_interfa
         plt.savefig('part3/Pictures/convergence_CB.PDF')
     plt.show()
 
+def plot_frequencies_comparison(freq_init, freq_cb, freq_gi, save, latex):
+    # Créer les numéros de modes (axe x)
+    modes = np.arange(1, len(freq_init) + 1)
+    isLatex(latex)
+    
+    # Créer la figure
+    plt.figure(figsize=(10, 8))
+    
+    # Tracer chaque série avec les symboles spécifiques
+    plt.plot(modes, freq_init, 's', label='EXACT', color='b', markersize=8, 
+             markerfacecolor='none')  # carré bleu vide
+    plt.plot(modes, freq_cb, 'rx', label='CRAIG-BAMPTON', markersize=8)  # croix rouge
+    plt.plot(modes, freq_gi, 'ko', label='GUYAN', markersize=8,
+             markerfacecolor='none')  # cercle noir vide
+    
+    # Connecter les points avec des lignes
+    #plt.plot(modes, freq_init, 'b-', alpha=0.5)
+    #plt.plot(modes, freq_cb, 'r-', alpha=0.5)
+    #plt.plot(modes, freq_gi, 'k-', alpha=0.5)
+    
+    # Personnaliser les axes
+    plt.xlabel('Mode number [-]')
+    plt.ylabel('Frequency [Hz]')
+    plt.grid(True)
+    
+    # Définir les limites des axes
+    plt.xlim(0, max(modes) + 1)
+    plt.ylim(0, max(max(freq_init), max(freq_cb), max(freq_gi)) * 1.1)
+    
+    # Ajouter la légende
+    plt.legend(frameon=True)
+    
+    # Afficher le graphique
+    plt.tight_layout()
+
+    if save:
+        plt.savefig(f'part3/Pictures/comparison_freq_full_gi_cb.PDF')
+    plt.show()
+
 
 

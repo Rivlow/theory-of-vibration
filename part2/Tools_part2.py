@@ -4,8 +4,10 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset, inset_axes
 from scipy.signal import find_peaks
 import numpy as np
 
+import part2.mode_method as mode_method
+
 SMALL_SIZE = 8
-MEDIUM_SIZE = 18
+MEDIUM_SIZE = 14
 BIGGER_SIZE = 18
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
@@ -30,56 +32,44 @@ def extractDOF(node_index, nodes_clamped):
     return 6 * adjusted_index  # first DOF
 
 def plotSingle(time, q, xlabel, ylabel, save, name, latex):
-    # Configurer le style avant de créer la figure
+
     isLatex(latex)
     
-    # Créer une figure avec un fond blanc
-    fig = plt.figure(figsize=(12, 8), facecolor='white')
+    fig = plt.figure(figsize=(6.77, 4), facecolor='white')
     ax = fig.add_subplot(111)
 
-    # Plot principal
     ax.plot(time, q, 'navy', linewidth=1.5)
     ax.grid(True, linestyle='--', alpha=0.7)
-    ax.set_xlabel(xlabel, fontsize=MEDIUM_SIZE)  # Utiliser la taille définie
-    ax.set_ylabel(ylabel, fontsize=MEDIUM_SIZE)  # Utiliser la taille définie
+    ax.set_xlabel(xlabel, fontsize=MEDIUM_SIZE)
+    ax.set_ylabel(ylabel, fontsize=MEDIUM_SIZE)  
     
-    # Configurer les ticks du plot principal
     ax.tick_params(axis='both', labelsize=MEDIUM_SIZE)
 
-    # Créer le zoom inset avec une taille plus grande
     axins = inset_axes(ax,
                       "85%", "80%",
                       bbox_to_anchor=(0.45, 0.35, 0.5, 0.5),
                       bbox_transform=ax.transAxes,
                       loc='center')
 
-    # Configurer le fond blanc avec une bordure grise
     axins.patch.set_facecolor('white')
     axins.patch.set_alpha(1.0)
     axins.patch.set_zorder(3)
     
-    # Ajouter une bordure blanche plus large autour du zoom
     for spine in axins.spines.values():
         spine.set_linewidth(2.5)
         spine.set_color('white')
         spine.set_zorder(4)
     
-    # Tracer le zoom
     axins.plot(time, q, 'navy', linewidth=1.5, zorder=5)
-    
-    # Configurer la grille du zoom
     axins.grid(True, linestyle='--', alpha=0.4, zorder=4)
     
-    # Définir la région du zoom
     x1, x2 = 0, 1
     y1, y2 = 1.1*min(q), 1.1*max(q)
     axins.set_xlim(x1, x2)
     axins.set_ylim(y1, y2)
 
-    # Ajouter les lignes de connexion avec un style plus fin
     mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5", lw=1, zorder=6)
     
-    # Configurer les ticks du zoom avec la même taille que le plot principal
     axins.tick_params(axis='both', colors='navy', labelsize=MEDIUM_SIZE)
     for label in axins.get_xticklabels() + axins.get_yticklabels():
         label.set_bbox(dict(facecolor='white', edgecolor='none', alpha=0.8))
@@ -94,38 +84,31 @@ def plotSingle(time, q, xlabel, ylabel, save, name, latex):
 
 def plotFFT(xf, amplitude, save, name_save, latex, height_ratio=0.00001, prominence_ratio=0.000001, distance=5):
 
-    # Configurer le style
     isLatex(latex)
     
-    # Créer la figure
-    fig = plt.figure(figsize=(12, 8), facecolor='white')
+    fig = plt.figure(figsize=(6.77, 4), facecolor='white')
     ax = fig.add_subplot(111)
     
-    # Plot principal de la FFT avec ligne continue
     ax.plot(xf, amplitude, 'navy', linewidth=1)
     
-    # Trouver les pics significatifs jusqu'à 20 Hz
     mask_20hz = xf <= 20
     xf_masked = xf[mask_20hz]
     amplitude_masked = amplitude[mask_20hz]
     
-    # Calculer le seuil dynamique basé sur la moyenne locale
     window = len(amplitude_masked) // 10
     avg_amplitude = np.convolve(amplitude_masked, np.ones(window)/window, mode='same')
     threshold = avg_amplitude * 2
     
     peaks, _ = find_peaks(amplitude_masked, 
-                         height=max(amplitude_masked) * height_ratio,  # Seuil paramétrable
-                         distance=distance,                           # Distance paramétrable
-                         prominence=max(amplitude_masked) * prominence_ratio)  # Prominence paramétrable
+                         height=max(amplitude_masked) * height_ratio, 
+                         distance=distance,                          
+                         prominence=max(amplitude_masked) * prominence_ratio) 
     
     peak_freqs = xf_masked[peaks]
     peak_amps = amplitude_masked[peaks]
     
-    # Ajouter les points rouges sur les pics
     ax.scatter(peak_freqs, peak_amps, color='red', s=25, zorder=5)
     
-    # Annoter uniquement les pics les plus importants
     for freq, amp in zip(peak_freqs, peak_amps):
         if amp > max(amplitude_masked) * height_ratio:
             ax.annotate(f'{freq:.2f} Hz',
@@ -133,12 +116,11 @@ def plotFFT(xf, amplitude, save, name_save, latex, height_ratio=0.00001, promine
                        xytext=(0, 10),
                        textcoords='offset points',
                        ha='center',
-                       fontsize=SMALL_SIZE)
+                       fontsize=12)
     
-    # Configuration des axes
     ax.grid(True, linestyle='--', alpha=0.3)
     ax.set_xlabel('Frequency [Hz]', fontsize=MEDIUM_SIZE)
-    ax.set_ylabel('Fourier transform magnitude [mm]', fontsize=MEDIUM_SIZE)
+    ax.set_ylabel('Fourier transform magnitude [m]', fontsize=MEDIUM_SIZE)
     
     ax.set_yscale('log')
     ax.tick_params(axis='both', labelsize=MEDIUM_SIZE)
@@ -154,7 +136,7 @@ def plotFFT(xf, amplitude, save, name_save, latex, height_ratio=0.00001, promine
 
 def plotAll(time, variables, names, colors, line_styles, xlabel, ylabel, save, name_save):
 
-    plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(6.77, 4))
     
     if not (len(variables) == len(names) == len(colors) == len(line_styles)):
         raise ValueError("All entry must have same size")
@@ -178,3 +160,86 @@ def plotAll(time, variables, names, colors, line_styles, xlabel, ylabel, save, n
     plt.show()
     
     return plt.gcf()
+
+def mNorm(eta, mu, n_modes):
+    return np.sum(np.power(eta[:n_modes], 2) * mu[:n_modes, np.newaxis], axis=0)
+    
+def convergenceAmplitude(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, name, save, latex):
+
+    q_full, q_acc_full = [], []
+    fig, ax = plt.subplots(1, 1, figsize=(6.77, 4))
+    isLatex(latex)
+    
+    for i, span_mode in enumerate(range(1, n_modes)):
+        q = mode_method.modeDisplacementMethod(eta, modes, span_mode)[z_dir,:]
+        q_acc = mode_method.modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, span_mode)[z_dir,:]
+        q_full.append(np.max(q))
+        q_acc_full.append(np.max(q_acc))
+    
+  
+    q_ref = q_full[-1]  
+    q_acc_ref = q_acc_full[-1] 
+    
+    err_cumul_q = [np.abs(q - q_ref)/np.abs(q_ref) * 100 for q in q_full]
+    err_cumul_acc = [np.abs(q - q_acc_ref)/np.abs(q_acc_ref) * 100 for q in q_acc_full]
+
+   
+    ax.scatter(range(1, len(err_cumul_q)-1), err_cumul_q[:-2], label="displacement method")
+    ax.scatter(range(1, len(err_cumul_acc)-1), err_cumul_acc[:-2], label="acceleration method")
+    ax.plot(range(1, len(err_cumul_q)-1), err_cumul_q[:-2], ls="--")
+    ax.plot(range(1, len(err_cumul_acc)-1), err_cumul_acc[:-2], ls="--")
+    
+    
+    #ax.set_yscale('log') 
+    ax.set_xticks(range(0, n_modes))
+    ax.set_xlabel('Number of modes n[-]')
+    ax.set_ylabel('Relative error [%]')
+    ax.grid(True, which="both", ls="-", alpha=0.2)
+    ax.grid(True, which="major", ls="-", alpha=0.5)
+    ax.legend()
+    
+
+    
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(f'part2/Pictures/{name}.pdf')
+    
+    plt.show()
+
+def convergenceShape(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, save, latex):
+    q_full, q_acc_full = [], []
+    
+    fig, ax  = plt.subplots(1, 1, figsize=(15, 6))
+    isLatex(latex)
+    nb_modes = [1, 5, 8]
+    
+    for i, span_mode in enumerate(range(1, n_modes)):
+
+        q = mode_method.modeDisplacementMethod(eta, modes, span_mode)[z_dir,:]
+        q_acc = mode_method.modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, span_mode)[z_dir,:]
+        q_full.append(np.max(q))
+        q_acc_full.append(np.max(q_acc))
+
+   
+
+    var_q = [np.abs(q_full[i+1]-q_full[i])/q_full[i] for i in range(len(q_full)-1)]
+    var_q_acc = [np.abs(q_acc_full[i+1]-q_acc_full[i])/q_acc_full[i] for i in range(len(q_acc_full)-1)]
+        
+    ax.scatter(range(1, len(q_full)), var_q, label="displacement method")
+    ax.scatter(range(1, len(q_acc_full)), var_q_acc, label="acceleration method")
+    ax.plot(range(1, len(q_full)), var_q, ls="--")
+    ax.plot(range(1, len(q_acc_full)), var_q_acc, ls="--")
+    ax.set_xticks(range(1, len(q_full)))
+    ax.set_xlabel('Number of modes n[-]')
+    ax.set_ylabel(r'$\frac{max(q_{n+1})-max(q_n)}{max(q_n)}$[%]')
+    ax.legend()
+    ax.grid(True)
+
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig('part2/Pictures/convergence.pdf')
+    
+    plt.show()
+    

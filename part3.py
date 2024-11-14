@@ -21,7 +21,7 @@ def main():
     # Part 1 : compute K, M #
     #########################
     elem_per_beam = 5
-    n_modes = 6
+    n_modes =  14
 
     geom_data, phys_data, sim_data, reduction_data = setParams3()
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)
@@ -59,8 +59,9 @@ def main():
     # Apply reduction method
     freq_gi, modes_gi, K_gi, M_gi, C_gi, R_gi, F_gi, x0_gi, v0_gi = GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs, F, x0, v0, n_modes)
     freq_cb, modes_cb, K_cb, M_cb, C_cb, R_cb, F_cb, x0_cb, v0_cb = CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, 
-                                                                                          F, x0, v0, n_interface_modes=13, n_eigen=n_modes)
+                                                                                          F, x0, v0, n_interface_modes=5, n_eigen=n_modes)
     
+    plot_frequencies_comparison(freq_init, freq_cb, freq_gi, save=True, latex=True)
     #compareFullGIFreq(freq_init, freq_gi)
     #compareFullCBFreq(freq_init, freq_cb)
     #convergenceCB(freq_init, K_parts, M_parts, C_parts, condensed_dofs, range(0, 20), save=True, latex=True)
