@@ -3,10 +3,27 @@ from scipy.sparse import linalg, csr_matrix, hstack, vstack, eye
 from scipy.sparse.linalg import eigsh, spsolve, inv
 import os
 import sys
+import matplotlib.pyplot as plt
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
+
+SMALL_SIZE = 12
+MEDIUM_SIZE = 18
+BIGGER_SIZE = 18
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+plt.rc('ytick', labelsize=MEDIUM_SIZE)   # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)   # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+def isLatex(latex):
+    if latex:
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='lmodern')    
+
 
 
 def partition_matrices(K, M, C, retained_dofs):
@@ -32,84 +49,110 @@ def partition_matrices(K, M, C, retained_dofs):
   
     return (K_CC, K_CR, K_RC, K_RR), (M_CC, M_CR, M_RC, M_RR), (C_CC, C_CR, C_RC, C_RR), condensed_dofs, retained_dofs
 
-def GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs):
+def GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs, F, x0, v0, n_modes):
 
     K_CC, K_CR, K_RC, K_RR = K_parts
     M_CC, M_CR, M_RC, M_RR = M_parts
     C_CC, C_CR, C_RC, C_RR = C_parts
     
-    # Rearrange K, M and C
-    K_top = hstack([K_RR, K_RC]) 
-    K_bot = hstack([K_CR, K_CC])
-    K_tild = vstack([K_top, K_bot])
-
-    M_top = hstack([M_RR, M_RC]) 
-    M_bot = hstack([M_CR, M_CC])
-    M_tild = vstack([M_top, M_bot])
-
-    C_top = hstack([C_RR, C_RC]) 
-    C_bot = hstack([C_CR, C_CC])
-    C_tild = vstack([C_top, C_bot])
-
-    # Compute transformation matrix R
-    K_CC_inv = inv(K_CC.tocsc())    
-    phi_s = -K_CC_inv @ K_CR
-    n_r = len(retained_dofs)
-    I = eye(np.shape(phi_s)[1], format='csr')
-    R = vstack([I, phi_s])
+    # Rearrange matrices
+    K_tild = vstack([hstack([K_RR, K_RC]), hstack([K_CR, K_CC])])
+    M_tild = vstack([hstack([M_RR, M_RC]), hstack([M_CR, M_CC])])
+    C_tild = vstack([hstack([C_RR, C_RC]), hstack([C_CR, C_CC])])
     
-    # Reduce K and M
+    # Compute transformation matrix
+    phi_s = -inv(K_CC.tocsc()) @ K_CR
+    R = vstack([eye(len(retained_dofs), format='csr'), phi_s])
+    
+    # Reduce system matrices
     K_red = R.T @ K_tild @ R
     M_red = R.T @ M_tild @ R
     C_red = R.T @ C_tild @ R
     
-    # Compute reduced eigen_values
-    eigen_values, eigen_vectors = eigsh(K_red, k=6, M=M_red, sigma=0, which='LM')
+    # Rearrange F, x0, v0
+    F_red = F[retained_dofs, :]
+    x0_red = x0[retained_dofs]
+    v0_red = v0[retained_dofs]
+    
+    # Compute eigenvalues
+    eigen_values, eigen_vectors = eigsh(K_red, k=n_modes, M=M_red, sigma=0, which='LM')
     frequencies = np.sqrt(np.abs(eigen_values)) / (2 * np.pi)
     
-    return frequencies, eigen_vectors, K_red, M_red, C_red, R
+    return frequencies, eigen_vectors, K_red, M_red, C_red, R, F_red, x0_red, v0_red
 
-def CraigBamptonReduction(K_parts, M_parts, C_parts, condensed_dofs, n_modes):
+def CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, F, x0, v0, n_interface_modes, n_eigen=6):
 
     K_CC, K_CR, K_RC, K_RR = K_parts
     M_CC, M_CR, M_RC, M_RR = M_parts
     C_CC, C_CR, C_RC, C_RR = C_parts
-
-    # Rearrange K and M 
-    K_top = hstack([K_RR, K_RC]) 
-    K_bot = hstack([K_CR, K_CC])
-    K_tild = vstack([K_top, K_bot])
-
-    M_top = hstack([M_RR, M_RC]) 
-    M_bot = hstack([M_CR, M_CC])
-    M_tild = vstack([M_top, M_bot])
-
-    C_top = hstack([C_RR, C_RC]) 
-    C_bot = hstack([C_CR, C_CC])
-    C_tild = vstack([C_top, C_bot])
-
     
-    static_eigvals, static_eigvect = linalg.eigsh(K_CC.tocsc(), k=n_modes, M=M_CC.tocsc(), sigma=0, which='LM')
+    # Rearrange matrices
+    n_retained = len(retained_dofs)
+    n_interface = n_interface_modes
+    K_tild = vstack([hstack([K_RR, K_RC]), hstack([K_CR, K_CC])])
+    M_tild = vstack([hstack([M_RR, M_RC]), hstack([M_CR, M_CC])])
+    C_tild = vstack([hstack([C_RR, C_RC]), hstack([C_CR, C_CC])])
     
-    # Compute transformation matrix R
-    n_c = len(condensed_dofs)
-    n_r = K_RR.shape[0]
-    K_CC_inv = inv(K_CC.tocsc())    
-    phi_s = -K_CC_inv @ K_CR
-
-    I = eye(n_r, format='csr')
-    O = csr_matrix((n_r, n_modes))
-    R_top = hstack([I, O])
-    R_bot = hstack([phi_s, static_eigvect[:, :n_modes]])
-    R = vstack([R_top, R_bot])
-
+    # Compute modes and transformation matrix
+    phi_m = csr_matrix((K_CC.shape[0], 0)) if n_interface == 0 else \
+            linalg.eigsh(K_CC.tocsc(), k=n_interface, M=M_CC.tocsc(), sigma=0, which='LM')[1]
+    phi_s = -inv(K_CC.tocsc()) @ K_CR
+    R = vstack([hstack([eye(n_retained, format='csr'), csr_matrix((n_retained, n_interface))]),
+                hstack([phi_s, phi_m])])
+    
+    # Reduce system matrices
     K_red = R.T @ K_tild @ R
-    M_red = R.T @ M_tild@ R
+    M_red = R.T @ M_tild @ R
     C_red = R.T @ C_tild @ R
+
+    # Rearrange F, x0 and v0
+    F_red = np.vstack([F[retained_dofs, :], phi_m.T @ F[condensed_dofs, :] if n_interface > 0 else np.array([]).reshape(0, F.shape[1])])
+    x0_red = np.concatenate([x0[retained_dofs], phi_m.T @ x0[condensed_dofs] if n_interface > 0 else []])
+    v0_red = np.concatenate([v0[retained_dofs], phi_m.T @ v0[condensed_dofs] if n_interface > 0 else []])
     
-    eigen_values, eigen_vectors = linalg.eigsh(K_red, k=n_modes, M=M_red, sigma=0, which='LM')
-    eigen_values = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
+    eigen_values, eigen_vectors = linalg.eigsh(K_red, k=min(n_eigen, K_red.shape[0]), M=M_red, sigma=0, which='LM')
+    frequencies = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
     
-    return eigen_values, eigen_vectors, K_red, M_red, C_red, R
+    return frequencies, eigen_vectors, K_red, M_red, C_red, R, F_red, x0_red, v0_red
+
+def compute_MAC(modes_full, modes_reduced, R, retained_dofs, condensed_dofs, name, save, latex):
+    modes_reduced_full = R @ modes_reduced    
+    
+    modes_full_reordered = np.vstack([
+        modes_full[retained_dofs, :],  
+        modes_full[condensed_dofs, :]
+    ])
+    
+    n_modes_full = modes_full.shape[1]
+    n_modes_reduced = modes_reduced.shape[1]
+    MAC = np.zeros((n_modes_reduced, n_modes_full))
+    
+    # Compute MAC values
+    for i in range(n_modes_reduced):
+        for j in range(n_modes_full):
+            numerator = np.abs(modes_full_reordered[:, j].T @ modes_reduced_full[:, i]) ** 2
+            denominator = (modes_full_reordered[:, j].T @ modes_full_reordered[:, j]) * \
+                         (modes_reduced_full[:, i].T @ modes_reduced_full[:, i])
+            MAC[i, j] = numerator / denominator
+    
+    plt.figure(figsize=(8, 6))
+    isLatex(latex)
+    plt.imshow(MAC, cmap='Greys', interpolation='none', aspect='equal', origin='lower')  # origin='lower' pour inverser l'axe y
+    plt.colorbar(label="Correlation")
+    plt.ylabel("Approximated mode")
+    plt.xlabel("Reference mode ")
+    plt.tight_layout()
+
+    if save:
+        plt.savefig(f'part3/Pictures/MAC_{name}.PDF')
+    plt.show()
+    
+  
+    
+
+
+
+
+
     
 

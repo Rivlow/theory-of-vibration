@@ -48,10 +48,10 @@ def main():
     # Mode displacement/acceleration method #
     #---------------------------------------#
 
-    #eta, phi, mu  = etaPhiMu(2*np.pi*frequencies, modes, epsilon, M, F, t_span, n_modes)
+    eta, phi, mu  = etaPhiMu(2*np.pi*frequencies, modes, epsilon, M, F, t_span, n_modes)
 
-    #q = modeDisplacementMethod(eta, modes, n_modes)
-    #q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, n_modes)
+    q = modeDisplacementMethod(eta, modes, n_modes)
+    q_acc = modeAccelerationMethod(t_span, eta, 2*np.pi*frequencies, modes, K, phi, F, n_modes)
     #M_norm = mNorm(eta, mu, n_modes)
     
     #-------------------------------#
@@ -65,11 +65,12 @@ def main():
     #----------------#
     DOF_1 = extractDOF(sim_data["nodes_obs"][0], geom_data["nodes_clamped"])
     DOF_2 = extractDOF(sim_data["nodes_obs"][1], geom_data["nodes_clamped"])
-    z_dir = DOF_2 + 2
+    z_dir = DOF_1 + 2
 
-    #convergenceMax(eta, modes, 2*np.pi*frequencies, K, phi, F, t_span, n_modes, z_dir, save=True, latex=True)
+    convergenceMax(eta, modes, 2*np.pi*frequencies, K, phi, F, t_span, n_modes, z_dir, save=True, latex=True)
     #analysisTransient(q_nm[z_dir,:], t_span) # find time at which transient -> steady state
     #convergence(eta, modes, 2*pi*frequencies, K, phi, F, t_span, n_modes, z_dir)
+    '''
     xf, amplitude = FFTNewmark(q_nm[z_dir,:], t_span) 
     plotFFT(xf, amplitude, save=True, name_save="fft_nm_23_first_load", latex=True, 
             height_ratio=0.000001,     # Plus petit = plus de pics détectés
@@ -78,23 +79,17 @@ def main():
     #plotSingle(t_span, q_nm[z_dir,:], "Time [s]", "Displacement [m]", save=True, name="nm_23_second_load", latex=True)
     
 
-    """
-    var_to_plot = [q_nm[z_dir, :], q_acc[z_dir,:]]
+    
+    var_to_plot = [q[z_dir, :], q_acc[z_dir,:]]
     var_name = ['displacement method', 'acceleration method']
     var_ls = ['-', ':']
     var_color = ['blue', 'red']
     xlabel = "time t [s]"
     ylabel = "generalized displacement [m]"
-    """
-    #var_to_plot = [q_acc[z_dir, :]]
-    var_name = ['acceleration method']
-    var_ls = ['-']
-    var_color = ['blue']
-    xlabel = "Time t [s]"
-    ylabel = "Displacement [m]"
     
-    #plotAll(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=True, name_save="acc_node_23_long")
-    
+  
+    plotAll(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=True, name_save="acc_node_23_long")
+    '''
 
 if __name__  == "__main__":
     main()

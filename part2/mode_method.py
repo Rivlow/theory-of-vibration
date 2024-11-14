@@ -57,7 +57,6 @@ def computeForce(sim_data,
 
     return F
 
-
 def computeH(w_d, w_r, eps_r, t_span):
     """computation of impulse rsponse h for all modes."""
     t_matrix = t_span[np.newaxis, :]
@@ -131,7 +130,7 @@ def convergenceMax(eta, modes, frequencies, K, phi, F, t_span, n_modes, z_dir, s
     ax.plot(range(1, len(err_cumul_acc)-1), err_cumul_acc[:-2], ls="--")
     
     
-    ax.set_yscale('log') 
+    #ax.set_yscale('log') 
     ax.set_xticks(range(0, n_modes))
     ax.set_xlabel('Number of modes n[-]')
     ax.set_ylabel('Relative error [%]')

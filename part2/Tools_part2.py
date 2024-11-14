@@ -161,10 +161,10 @@ def plotAll(time, variables, names, colors, line_styles, xlabel, ylabel, save, n
     
     for var, name, color, ls in zip(variables, names, colors, line_styles):
         plt.plot(time, var, 
-                linestyle=ls, 
-                color=color, 
-                label=name,
-                linewidth=2)
+                 linestyle=ls, 
+                 color=color, 
+                 label=name,
+                 linewidth=2)
     
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.xlabel(xlabel)

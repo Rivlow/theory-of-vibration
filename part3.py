@@ -20,7 +20,7 @@ def main():
     #########################
     # Part 1 : compute K, M #
     #########################
-    elem_per_beam = 1
+    elem_per_beam = 5
     n_modes = 6
 
     geom_data, phys_data, sim_data, reduction_data = setParams3()
@@ -45,52 +45,56 @@ def main():
     #################################
     # Part 3 : Reduction algorithms #
     #################################
+    #displayRetained(nodes_list, reduction_data["nodes_retained"], elems_list, geom_data, save=True, latex=True)
 
-    # Separate K,M and C w.r.t. condensed/retained dofs
+    # Define input variables
+    t_span = sim_data["t_span"]
+    F = computeForce(sim_data, geom_data, 2, modes_init, t_span)
+    x0 = v0 = np.zeros_like(modes_init[:,0]) # initial conditions
+
+    # Separate K,M and C, F, x0, v0 w.r.t. condensed/retained dofs
     retained_dofs = retainedDOF(reduction_data["nodes_retained"], reduction_data["node_dof_config"], geom_data["nodes_clamped"])
     K_parts, M_parts, C_parts, condensed_dofs, retained_dofs = partition_matrices(K, M, C, retained_dofs)
 
     # Apply reduction method
-    freq_gi, modes_gi, K_gi, M_gi, C_gi, R_gi = GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs)
-    freq_cb, modes_cb, K_cb, M_cb, C_cb, R_cb = CraigBamptonReduction(K_parts, M_parts, C_parts, condensed_dofs, n_modes)
+    freq_gi, modes_gi, K_gi, M_gi, C_gi, R_gi, F_gi, x0_gi, v0_gi = GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs, F, x0, v0, n_modes)
+    freq_cb, modes_cb, K_cb, M_cb, C_cb, R_cb, F_cb, x0_cb, v0_cb = CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, 
+                                                                                          F, x0, v0, n_interface_modes=13, n_eigen=n_modes)
     
-    #print(f"\nfrequencies by Craig Bampton (rel error in %): {abs(freq_cb-freq_init)/freq_init*100}")
+    #compareFullGIFreq(freq_init, freq_gi)
+    #compareFullCBFreq(freq_init, freq_cb)
+    #convergenceCB(freq_init, K_parts, M_parts, C_parts, condensed_dofs, range(0, 20), save=True, latex=True)
 
     # Newmark on reduced model
-    t_span = sim_data["t_span"]
-
-    F = computeForce(sim_data, geom_data, 2, modes_init, t_span)
     DOF_1 = extractDOF(sim_data["nodes_obs"][0], geom_data["nodes_clamped"])
     DOF_2 = extractDOF(sim_data["nodes_obs"][1], geom_data["nodes_clamped"])
-    DOF_1_reduced = findReducedDOF(sim_data["nodes_obs"][0], 
-                                   reduction_data["nodes_retained"], 
-                                   reduction_data["node_dof_config"])
-    
-    DOF_2_reduced = findReducedDOF(sim_data["nodes_obs"][1], 
-                                   reduction_data["nodes_retained"], 
-                                   reduction_data["node_dof_config"])
-    
-    z_dir_reduced = DOF_2_reduced + 2 
     z_dir = DOF_1 + 2
-    print(z_dir_reduced)
-    print(z_dir)
 
-    # initial conditions
-    x0 = v0 = np.zeros_like(modes_init[:,0]) 
+    DOF_1_red = findReducedDOF(sim_data["nodes_obs"][0], reduction_data["nodes_retained"], reduction_data["node_dof_config"])
+    DOF_2_red = findReducedDOF(sim_data["nodes_obs"][1], reduction_data["nodes_retained"], reduction_data["node_dof_config"])
+    z_dir_red = DOF_1_red + 2
 
+    """
     x_init, v_init, a_init = NewmarkIntegration(M, C, K, x0, v0, t_span, F, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
-    x_gi, v_gi, a_gi = NewmarkIntegration(M_gi, C_gi, K_gi, R_gi.T@x0, R_gi.T@v0, t_span, R_gi.T@F, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
-    x_cb, v_cb, a_cb = NewmarkIntegration(M_cb, C_cb, K_cb, R_cb.T@x0, R_cb.T@v0, t_span, R_cb.T@F, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+    x_gi, v_gi, a_gi = NewmarkIntegration(M_gi, C_gi, K_gi, x0_gi, v0_gi, t_span, F_gi, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+    x_cb_red, v_cb, a_cb = NewmarkIntegration(M_cb, C_cb, K_cb, x0_cb, v0_cb, t_span, F_cb, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
 
-    print(np.shape(x_cb))
-
-    var_to_plot = [x_init[z_dir, :], x_cb[4,:]]
+    var_to_plot = [x_init[z_dir, :], x_cb_red[z_dir_red,:]]
     var_name = ['Full system', "Craig-Bampton"]
     var_ls = ['-', "--"]
     var_color = ['blue', 'green']
     xlabel = "time t [s]"
     ylabel = "generalized displacement [m]"
-    plotAll(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=False, name="disp_vs_acc")
+    plotAll(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=False, name_save="disp_vs_acc")
+    """
+
+    # Compute MAC matrices
+    #compute_MAC(modes_init, modes_gi, R_gi, retained_dofs, condensed_dofs, name="gi", save=True, latex=True)
+    #compute_MAC(modes_init, modes_cb, R_cb, retained_dofs, condensed_dofs, name="cb", save=True, latex=True)
+
+
+
+
     
 
 if __name__  == "__main__":

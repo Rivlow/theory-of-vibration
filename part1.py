@@ -8,7 +8,7 @@ from part1.get_params_part1 import setParams as setParams1
 def main():
 
     geom_data, phys_data = setParams1()
-    elem_per_beam = 20
+    elem_per_beam = 1
     n_modes = 6
 
     # Define initial geometry
@@ -33,8 +33,8 @@ def main():
     # Display
     fig = plt.figure(figsize=(10, 8), facecolor='none', edgecolor='none')
     ax = fig.add_subplot(projection='3d')
-    #display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=False, latex=True)
-    plotModes(nodes_list, n_modes, modes, elems_list, geom_data["nodes_clamped"], save=True, github=False, latex=True)
+    display(fig, ax, nodes_list, elems_list, geom_data, save=True, github=False, latex=True)
+    #plotModes(nodes_list, n_modes, modes, elems_list, geom_data["nodes_clamped"], save=True, github=False, latex=True)
     plt.show()
 
     #convergence(geom_data, phys_data, n_modes, max_nb_elem=8, plot=True, github=False, latex=True)
