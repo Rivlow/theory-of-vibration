@@ -8,8 +8,9 @@ from part1.get_params_part1 import setParams as setParams1
 def main():
 
     geom_data, phys_data = setParams1()
-    elem_per_beam = 1
+    elem_per_beam = 5
     n_modes = 6
+    aurore = 1
 
     # Define initial geometry
     nodes_list_init, nodes_pairs_init = initializeGeometry(geom_data, phys_data)

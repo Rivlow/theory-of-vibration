@@ -1,6 +1,7 @@
 import os
 import sys
 import matplotlib.pyplot as plt
+import time
 
 # Configuration des chemins
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,10 +9,13 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from part2.Tools_part2 import extractDOF
+from part2.Newmark import *
 from part3.reduction_method import *
+from part1 import FEM
 
-SMALL_SIZE = 12
-MEDIUM_SIZE = 18
+
+SMALL_SIZE = 8
+MEDIUM_SIZE = 14
 BIGGER_SIZE = 18
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
@@ -78,17 +82,17 @@ def displayRetained(nodes_list, retained_nodes, elems_list, geom_data, save, lat
     for node in nodes_list.values():
         if node.idx in retained_nodes:
             if not label_retained_shown:
-                ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="red", s=20, label="retained", depthshade=True)
+                ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="red", s=70, label="retained", depthshade=True)
                 label_retained_shown = True
             else:
-                ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="red", s=20, depthshade=True)
+                ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="red", s=70, depthshade=True)
         else:
             ax.scatter(node.pos[0], node.pos[1], node.pos[2], c="black", s=20, depthshade=True)
 
     # Annotate nodes with their index
     text_color = 'black'
     for i, (x_val, y_val, z_val) in enumerate(zip(x_node, y_node, z_node)):
-        ax.text(x_val, y_val, z_val, f'{i}', fontsize=9, ha='center', color=text_color)
+        ax.text(x_val, y_val, 1.03*z_val, f'{i}', fontsize=14, ha='center', color=text_color)
 
     # Beams (elements) display
     for elem in elems_list:
@@ -101,9 +105,6 @@ def displayRetained(nodes_list, retained_nodes, elems_list, geom_data, save, lat
 
     # Set plot labels and adjust for GitHub if needed
     label_color = 'black'
-    ax.set_xlabel("X-axis", fontsize=12, color=label_color)
-    ax.set_ylabel("Y-axis", fontsize=12, color=label_color)
-    ax.set_zlabel("Z-axis", fontsize=12, color=label_color)
 
     # Adjust the limits based on the node coordinates
     ax.set_xlim([min(x_node) - 1, max(x_node) + 1])
@@ -149,6 +150,7 @@ def compareFullCBFreq(freq_init, freq_cb):
         ))
 
 def convergenceCB(freq_ref, K_parts, M_parts, C_parts, condensed_dofs, n_interface_modes_range, save, latex):
+
     n_eigen = len(freq_ref)
     errors_all = []
     
@@ -195,39 +197,25 @@ def convergenceCB(freq_ref, K_parts, M_parts, C_parts, condensed_dofs, n_interfa
         plt.savefig('part3/Pictures/convergence_CB.PDF')
     plt.show()
 
-def plot_frequencies_comparison(freq_init, freq_cb, freq_gi, save, latex):
-    # Créer les numéros de modes (axe x)
+def plotFrequenciesComparison(freq_init, freq_cb, freq_gi, save, latex):
+
     modes = np.arange(1, len(freq_init) + 1)
     isLatex(latex)
     
-    # Créer la figure
     plt.figure(figsize=(10, 8))
-    
-    # Tracer chaque série avec les symboles spécifiques
     plt.plot(modes, freq_init, 's', label='EXACT', color='b', markersize=8, 
-             markerfacecolor='none')  # carré bleu vide
-    plt.plot(modes, freq_cb, 'rx', label='CRAIG-BAMPTON', markersize=8)  # croix rouge
+             markerfacecolor='none') 
+    plt.plot(modes, freq_cb, 'rx', label='CRAIG-BAMPTON', markersize=8)
     plt.plot(modes, freq_gi, 'ko', label='GUYAN', markersize=8,
-             markerfacecolor='none')  # cercle noir vide
+             markerfacecolor='none') 
     
-    # Connecter les points avec des lignes
-    #plt.plot(modes, freq_init, 'b-', alpha=0.5)
-    #plt.plot(modes, freq_cb, 'r-', alpha=0.5)
-    #plt.plot(modes, freq_gi, 'k-', alpha=0.5)
-    
-    # Personnaliser les axes
     plt.xlabel('Mode number [-]')
     plt.ylabel('Frequency [Hz]')
     plt.grid(True)
     
-    # Définir les limites des axes
     plt.xlim(0, max(modes) + 1)
     plt.ylim(0, max(max(freq_init), max(freq_cb), max(freq_gi)) * 1.1)
-    
-    # Ajouter la légende
     plt.legend(frameon=True)
-    
-    # Afficher le graphique
     plt.tight_layout()
 
     if save:
@@ -236,3 +224,119 @@ def plot_frequencies_comparison(freq_init, freq_cb, freq_gi, save, latex):
 
 
 
+def compareTimeReductionMethod(t_span, sim_data, K, M, C, K_parts, M_parts, C_parts, condensed_dofs, 
+                               retained_dofs,  F, x0, v0, n_modes, 
+                               geom_data, phys_data, elem_per_beam_range, save, latex):
+    isLatex(latex)
+
+    time_full = []
+    time_gi = []
+    time_cb = []
+    for elem_per_beam in elem_per_beam_range:
+
+        # Full system
+        nodes_list_init, nodes_pairs_init = FEM.initializeGeometry(geom_data, phys_data)
+        nodes_list, nodes_pairs = FEM.addMoreNodes(nodes_list_init, nodes_pairs_init, elem_per_beam-1)
+        elems_list = FEM.createElements(nodes_pairs, nodes_list, geom_data, phys_data)
+        solver = FEM.Solver()
+        solver.assembly(elems_list, nodes_list, geom_data["nodes_clamped"])
+        solver.addLumpedMass(nodes_list, geom_data["nodes_lumped"])
+        solver.removeClampedNodes(nodes_list, geom_data["nodes_clamped"])
+        t_full_init = time.time()
+        freq_init, modes_init = solver.solve(n_modes)
+        x_init, v_init, a_init = NewmarkIntegration(M, C, K, x0, v0, t_span, F, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+        t_full_end = time.time()
+        time_full.append(t_full_end-t_full_init)
+
+        # Reduction method
+        freq_gi, modes_gi, K_gi, M_gi, C_gi, R_gi, F_gi, x0_gi, v0_gi = GuyanIronsReduction(K_parts, M_parts, C_parts, retained_dofs, F, x0, v0, n_modes)
+        t_gi_init = time.time()
+        x_gi, v_gi, a_gi = NewmarkIntegration(M_gi, C_gi, K_gi, x0_gi, v0_gi, t_span, F_gi, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+        t_gi_end = time.time()
+        time_gi.append(t_gi_end-t_gi_init)
+
+        
+        freq_cb, modes_cb, K_cb, M_cb, C_cb, R_cb, F_cb, x0_cb, v0_cb = CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, 
+                                                                                              F, x0, v0, n_interface_modes=5, n_eigen=n_modes)
+        t_cb_init = time.time()
+        x_cb, v_cb, a_cb = NewmarkIntegration(M_cb, C_cb, K_cb, x0_cb, v0_cb, t_span, F_cb, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+        t_cb_end = time.time()
+        time_cb.append(t_cb_end-t_cb_init)
+
+
+
+    plt.plot(elem_per_beam_range, time_full, 's', label='EXACT', color='b', markersize=8, 
+             markerfacecolor='none')
+    plt.plot(elem_per_beam_range, time_gi, 'rx', label='CRAIG-BAMPTON', markersize=8)
+    plt.plot(elem_per_beam_range, time_cb, 'ko', label='GUYAN', markersize=8,
+             markerfacecolor='none') 
+    plt.xlabel("Number of elements per beam [-]")
+    plt.ylabel("Total computation time [s]")
+    plt.legend(loc='best')
+
+
+    if save:
+        plt.savefig(f'part3/Pictures/comparison_time_full_gi_cb.PDF')
+    plt.show()
+
+def plotAll3(time, variables, names, colors, line_styles, xlabel, ylabel, save, latex, name_save):
+
+    isLatex(latex)
+    fig, ax = plt.subplots(1, 1, figsize=(6.77, 4))
+    
+    if not (len(variables) == len(names) == len(colors) == len(line_styles)):
+        raise ValueError("All entry must have same size")
+    
+    for var, name, color, ls in zip(variables, names, colors, line_styles):
+        plt.plot(time, var, 
+                 linestyle=ls, 
+                 color=color, 
+                 label=name,
+                 linewidth=2)
+    
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(loc='best')
+    
+    plt.tight_layout()
+    if save:
+        plt.savefig(f"part3/Pictures/{name_save}.PDF")
+
+    plt.show()
+    
+    return plt.gcf()
+
+def compute_MAC(modes_full, modes_reduced, R, retained_dofs, condensed_dofs, name, save, latex):
+    modes_reduced_full = R @ modes_reduced    
+    
+    modes_full_reordered = np.vstack([
+        modes_full[retained_dofs, :],  
+        modes_full[condensed_dofs, :]
+    ])
+    
+    n_modes_full = modes_full.shape[1]
+    n_modes_reduced = modes_reduced.shape[1]
+    MAC = np.zeros((n_modes_reduced, n_modes_full))
+    
+    # Compute MAC values
+    for i in range(n_modes_reduced):
+        for j in range(n_modes_full):
+            numerator = np.abs(modes_full_reordered[:, j].T @ modes_reduced_full[:, i]) ** 2
+            denominator = (modes_full_reordered[:, j].T @ modes_full_reordered[:, j]) * \
+                         (modes_reduced_full[:, i].T @ modes_reduced_full[:, i])
+            MAC[i, j] = numerator / denominator
+    
+    plt.figure(figsize=(8, 6))
+    isLatex(latex)
+    plt.imshow(MAC, cmap='Greys', interpolation='none', aspect='equal', origin='lower')  # origin='lower' pour inverser l'axe y (utile eheh)
+    plt.colorbar(label="Correlation")
+    plt.ylabel("Approximated mode")
+    plt.xlabel("Reference mode (full system)")
+    plt.tight_layout()
+
+    if save:
+        plt.savefig(f'part3/Pictures/MAC_{name}.PDF')
+    plt.show()
+    
+  

@@ -43,11 +43,11 @@ transient:
   
   excitation:
     frequency: 2  # [Hz]
-    height: 0.3  # Drop height [m]
+    height: 0.2  # Drop height [m]
     gravity: 9.81  # [m/s^2]
   
   nodes:
-    force_application: [10, 11]  # Nodes where force is applied
+    force_application: [23, 24]  # Nodes where force is applied
     observation: [10, 23]  # Nodes to observe
 
   damping:

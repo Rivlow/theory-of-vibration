@@ -27,6 +27,7 @@ def isLatex(latex):
 
 
 def partition_matrices(K, M, C, retained_dofs):
+    
 
     n = K.shape[0]
     condensed_dofs = np.array(sorted(list(set(range(n)) - set(retained_dofs))))
@@ -111,43 +112,11 @@ def CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_do
     v0_red = np.concatenate([v0[retained_dofs], phi_m.T @ v0[condensed_dofs] if n_interface > 0 else []])
     
     eigen_values, eigen_vectors = linalg.eigsh(K_red, k=min(n_eigen, K_red.shape[0]), M=M_red, sigma=0, which='LM')
-    frequencies = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi)
+    frequencies = np.sqrt(np.sort(eigen_values.real)) / (2 * np.pi) 
     
     return frequencies, eigen_vectors, K_red, M_red, C_red, R, F_red, x0_red, v0_red
 
-def compute_MAC(modes_full, modes_reduced, R, retained_dofs, condensed_dofs, name, save, latex):
-    modes_reduced_full = R @ modes_reduced    
-    
-    modes_full_reordered = np.vstack([
-        modes_full[retained_dofs, :],  
-        modes_full[condensed_dofs, :]
-    ])
-    
-    n_modes_full = modes_full.shape[1]
-    n_modes_reduced = modes_reduced.shape[1]
-    MAC = np.zeros((n_modes_reduced, n_modes_full))
-    
-    # Compute MAC values
-    for i in range(n_modes_reduced):
-        for j in range(n_modes_full):
-            numerator = np.abs(modes_full_reordered[:, j].T @ modes_reduced_full[:, i]) ** 2
-            denominator = (modes_full_reordered[:, j].T @ modes_full_reordered[:, j]) * \
-                         (modes_reduced_full[:, i].T @ modes_reduced_full[:, i])
-            MAC[i, j] = numerator / denominator
-    
-    plt.figure(figsize=(8, 6))
-    isLatex(latex)
-    plt.imshow(MAC, cmap='Greys', interpolation='none', aspect='equal', origin='lower')  # origin='lower' pour inverser l'axe y
-    plt.colorbar(label="Correlation")
-    plt.ylabel("Approximated mode")
-    plt.xlabel("Reference mode ")
-    plt.tight_layout()
 
-    if save:
-        plt.savefig(f'part3/Pictures/MAC_{name}.PDF')
-    plt.show()
-    
-  
     
 
 

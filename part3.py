@@ -47,6 +47,7 @@ def main():
     #################################
     #displayRetained(nodes_list, reduction_data["nodes_retained"], elems_list, geom_data, save=True, latex=True)
 
+    
     # Define input variables
     t_span = sim_data["t_span"]
     F = computeForce(sim_data, geom_data, 2, modes_init, t_span)
@@ -61,33 +62,38 @@ def main():
     freq_cb, modes_cb, K_cb, M_cb, C_cb, R_cb, F_cb, x0_cb, v0_cb = CraigBamptonReduction(K_parts, M_parts, C_parts, retained_dofs, condensed_dofs, 
                                                                                           F, x0, v0, n_interface_modes=5, n_eigen=n_modes)
     
-    plot_frequencies_comparison(freq_init, freq_cb, freq_gi, save=True, latex=True)
+    #plotFrequenciesComparison(freq_init, freq_cb, freq_gi, save=True, latex=True)
     #compareFullGIFreq(freq_init, freq_gi)
     #compareFullCBFreq(freq_init, freq_cb)
     #convergenceCB(freq_init, K_parts, M_parts, C_parts, condensed_dofs, range(0, 20), save=True, latex=True)
+    #compareTimeReductionMethod(t_span, sim_data, K, M, C, K_parts, M_parts, C_parts, condensed_dofs, retained_dofs,  F, x0, v0,
+    #                           6, geom_data, phys_data, np.arange(1, 15, 1), save=False, latex=False)
+
 
     # Newmark on reduced model
     DOF_1 = extractDOF(sim_data["nodes_obs"][0], geom_data["nodes_clamped"])
     DOF_2 = extractDOF(sim_data["nodes_obs"][1], geom_data["nodes_clamped"])
-    z_dir = DOF_1 + 2
+    z_dir = DOF_2 + 2
 
     DOF_1_red = findReducedDOF(sim_data["nodes_obs"][0], reduction_data["nodes_retained"], reduction_data["node_dof_config"])
     DOF_2_red = findReducedDOF(sim_data["nodes_obs"][1], reduction_data["nodes_retained"], reduction_data["node_dof_config"])
-    z_dir_red = DOF_1_red + 2
+    z_dir_red = DOF_2_red + 2
+    
 
-    """
+    
     x_init, v_init, a_init = NewmarkIntegration(M, C, K, x0, v0, t_span, F, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
     x_gi, v_gi, a_gi = NewmarkIntegration(M_gi, C_gi, K_gi, x0_gi, v0_gi, t_span, F_gi, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
-    x_cb_red, v_cb, a_cb = NewmarkIntegration(M_cb, C_cb, K_cb, x0_cb, v0_cb, t_span, F_cb, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
+    x_cb, v_cb, a_cb = NewmarkIntegration(M_cb, C_cb, K_cb, x0_cb, v0_cb, t_span, F_cb, sim_data["newmark"]["gamma"], sim_data["newmark"]["beta"])
 
-    var_to_plot = [x_init[z_dir, :], x_cb_red[z_dir_red,:]]
-    var_name = ['Full system', "Craig-Bampton"]
+    var_to_plot = [x_init[z_dir, :], x_gi[z_dir_red,:]]
+    var_name = ['Full system', "Guyan-Irons"]
     var_ls = ['-', "--"]
     var_color = ['blue', 'green']
     xlabel = "time t [s]"
     ylabel = "generalized displacement [m]"
-    plotAll(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=False, name_save="disp_vs_acc")
-    """
+    plotAll3(t_span, var_to_plot, var_name, var_color, var_ls, xlabel, ylabel, save=True, latex=True, name_save="guyan_vs_newmark_first_load_23")
+    
+
 
     # Compute MAC matrices
     #compute_MAC(modes_init, modes_gi, R_gi, retained_dofs, condensed_dofs, name="gi", save=True, latex=True)
